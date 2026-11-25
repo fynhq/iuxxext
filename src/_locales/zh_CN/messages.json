@@ -1,12 +1,12 @@
 {
   "extensionName": {
-    "message": "IUxx 元素屏蔽"
+    "message": "IUxx"
   },
   "extensionDescription": {
     "message": "点选网页上的任意元素，调整范围后确认屏蔽，刷新后依然生效；支持网站白名单。"
   },
   "actionTitle": {
-    "message": "IUxx 元素屏蔽"
+    "message": "IUxx"
   },
   "commandStartPicker": {
     "message": "开始选择要屏蔽的元素"
@@ -21,7 +21,7 @@
     "message": "设置"
   },
   "optionsPageTitle": {
-    "message": "设置 · IUxx 元素屏蔽"
+    "message": "设置 · IUxx"
   },
   "optionsIntro": {
     "message": "点选网页元素、调整范围后确认屏蔽，刷新后依然生效。"

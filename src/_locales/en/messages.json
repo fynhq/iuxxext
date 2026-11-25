@@ -1,12 +1,12 @@
 {
   "extensionName": {
-    "message": "IUxx Element Blocker"
+    "message": "IUxx"
   },
   "extensionDescription": {
     "message": "Click any element on a page, adjust the range, and block it. Rules survive reloads, plus a per-site whitelist."
   },
   "actionTitle": {
-    "message": "IUxx Element Blocker"
+    "message": "IUxx"
   },
   "commandStartPicker": {
     "message": "Start picking an element to block"
@@ -21,7 +21,7 @@
     "message": "Settings"
   },
   "optionsPageTitle": {
-    "message": "Settings · IUxx Element Blocker"
+    "message": "Settings · IUxx"
   },
   "optionsIntro": {
     "message": "Pick an element, adjust the range, and block it. Rules stay in effect after reloads."
