@@ -205,6 +205,11 @@ jobs:
             TAG=$(git tag --list 'v*' --sort=-v:refname | head -n 1)
           fi
           if [ -z "$TAG" ]; then
+            if [ "$GITHUB_EVENT_NAME" = "schedule" ]; then
+              echo "skip=true" >> "$GITHUB_OUTPUT"
+              echo "No v* tag found; skipping scheduled publish."
+              exit 0
+            fi
             echo "No v* tag found in this repository." >&2
             exit 1
           fi
@@ -223,6 +228,7 @@ jobs:
 
       - name: Check AMO review status
         id: amo
+        if: steps.tag.outputs.skip != 'true'
         shell: bash
         env:
           VERSION: ${{ steps.tag.outputs.version }}
@@ -253,7 +259,7 @@ jobs:
           fi
 
       - name: Fail on manual run while review is pending
-        if: github.event_name == 'workflow_dispatch' && steps.amo.outputs.public != 'true'
+        if: steps.tag.outputs.skip != 'true' && github.event_name == 'workflow_dispatch' && steps.amo.outputs.public != 'true'
         shell: bash
         env:
           VERSION: ${{ steps.tag.outputs.version }}
@@ -263,7 +269,7 @@ jobs:
 
       - name: Check existing release assets
         id: assets
-        if: github.event_name == 'schedule' && steps.amo.outputs.public == 'true'
+        if: steps.tag.outputs.skip != 'true' && github.event_name == 'schedule' && steps.amo.outputs.public == 'true'
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
@@ -288,7 +294,7 @@ jobs:
           fi
 
       - name: Download AMO-signed XPI and checksum
-        if: steps.amo.outputs.public == 'true' && steps.assets.outputs.skip != 'true'
+        if: steps.tag.outputs.skip != 'true' && steps.amo.outputs.public == 'true' && steps.assets.outputs.skip != 'true'
         shell: bash
         env:
           VERSION: ${{ steps.tag.outputs.version }}
@@ -323,7 +329,7 @@ jobs:
           (cd release && sha256sum -c SHA256SUMS)
 
       - name: Create or update GitHub release
-        if: steps.amo.outputs.public == 'true' && steps.assets.outputs.skip != 'true'
+        if: steps.tag.outputs.skip != 'true' && steps.amo.outputs.public == 'true' && steps.assets.outputs.skip != 'true'
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
