@@ -239,16 +239,19 @@ jobs:
           RESPONSE=$(curl -sS -w "\n%{http_code}" "$AMO_API/addon/$ADDON/versions/$VERSION/")
           CODE=$(tail -n 1 <<<"$RESPONSE")
           BODY=$(sed '$d' <<<"$RESPONSE")
-          if [ "$CODE" = "404" ]; then
-            echo "public=false" >> "$GITHUB_OUTPUT"
-            echo "AMO does not expose version $VERSION yet (pending review or not submitted)."
-            exit 0
-          fi
-          if [ "$CODE" != "200" ]; then
-            echo "$BODY" >&2
-            echo "Unexpected HTTP $CODE from AMO." >&2
-            exit 1
-          fi
+          case "$CODE" in
+            200) ;;
+            401|403|404)
+              echo "public=false" >> "$GITHUB_OUTPUT"
+              echo "AMO version $VERSION is not public yet (HTTP $CODE)."
+              exit 0
+              ;;
+            *)
+              echo "$BODY" >&2
+              echo "Unexpected HTTP $CODE from AMO." >&2
+              exit 1
+              ;;
+          esac
           CHANNEL=$(jq -r '.channel // empty' <<<"$BODY")
           STATUS=$(jq -r '.file.status // empty' <<<"$BODY")
           if [ "$CHANNEL" = "listed" ] && [ "$STATUS" = "public" ]; then
