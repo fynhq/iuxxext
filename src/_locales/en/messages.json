@@ -1,0 +1,287 @@
+{
+  "extensionName": {
+    "message": "IUxx Element Blocker"
+  },
+  "extensionDescription": {
+    "message": "Click any element on a page, adjust the range, and block it. Rules survive reloads, plus a per-site whitelist."
+  },
+  "actionTitle": {
+    "message": "IUxx Element Blocker"
+  },
+  "commandStartPicker": {
+    "message": "Start picking an element to block"
+  },
+  "menuBlockElement": {
+    "message": "Block this element (IUxx)"
+  },
+  "brandSubtitle": {
+    "message": "Element Blocker"
+  },
+  "settings": {
+    "message": "Settings"
+  },
+  "optionsPageTitle": {
+    "message": "Settings · IUxx Element Blocker"
+  },
+  "optionsIntro": {
+    "message": "Pick an element, adjust the range, and block it. Rules stay in effect after reloads."
+  },
+  "unsupportedTitle": {
+    "message": "Blocking is not available on this page"
+  },
+  "unsupportedText": {
+    "message": "Browser-internal pages, extension stores, local files, and similar pages do not support element blocking. Open a regular web page and try again."
+  },
+  "siteStateEnabledNone": {
+    "message": "Enabled · No rules yet"
+  },
+  "siteStateEnabledOne": {
+    "message": "Enabled · 1 rule"
+  },
+  "siteStateEnabledMany": {
+    "message": "Enabled · $1 rules"
+  },
+  "siteStateWhitelisted": {
+    "message": "Whitelisted. Blocking is off for this site."
+  },
+  "siteStateWhitelistedEntry": {
+    "message": "Whitelisted ($1). Blocking is off for this site."
+  },
+  "siteToggleTitle": {
+    "message": "Enable element blocking on this site"
+  },
+  "pickButton": {
+    "message": "Select an element to block"
+  },
+  "pickButtonStarting": {
+    "message": "Starting picker…"
+  },
+  "pickerHint": {
+    "message": "Click an element, adjust the range, then confirm"
+  },
+  "pickerHintShortcut": {
+    "message": "Shortcut Ctrl+Alt+X (macOS: Ctrl+Cmd+X)"
+  },
+  "pickerHintWhitelisted": {
+    "message": "Turn the switch above back on to re-enable blocking"
+  },
+  "rulesHeading": {
+    "message": "Blocked on this site"
+  },
+  "blockedElement": {
+    "message": "Blocked element"
+  },
+  "rulesEmptySite": {
+    "message": "No blocked elements on this site yet"
+  },
+  "delete": {
+    "message": "Delete"
+  },
+  "deleteRuleAria": {
+    "message": "Delete this blocking rule"
+  },
+  "footerOptionsLink": {
+    "message": "Whitelist and all rules"
+  },
+  "accessInjectTitle": {
+    "message": "Content script is not running"
+  },
+  "accessInjectText": {
+    "message": "This page was probably opened before the extension was installed or updated. Reload the page to use it."
+  },
+  "refreshPage": {
+    "message": "Reload page"
+  },
+  "accessPartialTitle": {
+    "message": "Site access is not fully granted"
+  },
+  "accessMissingTitle": {
+    "message": "Site access is missing"
+  },
+  "accessPartialText": {
+    "message": "Blocking works on this page for now, but rules may not apply automatically after a reload or on other sites. Allow access to all sites."
+  },
+  "accessMissingText": {
+    "message": "Blocking needs to run a script when the page loads, but site access is missing. Allow access to all sites and try again."
+  },
+  "accessManualTitle": {
+    "message": "Manual permission required"
+  },
+  "accessManualText": {
+    "message": "Automatic permission was not completed. Allow “Access all sites” in the browser's extension settings. On Firefox for Android, if that setting is unavailable, reinstall the extension and allow site access in the install prompt."
+  },
+  "allowSiteAccess": {
+    "message": "Allow site access"
+  },
+  "requesting": {
+    "message": "Requesting…"
+  },
+  "retryGrant": {
+    "message": "Retry permission"
+  },
+  "toggleFailed": {
+    "message": "Something went wrong. Try again."
+  },
+  "permissionMissing": {
+    "message": "Site access is missing. Allow access first."
+  },
+  "contentScriptMissing": {
+    "message": "The content script is not running. Reload the page and try again."
+  },
+  "pickerStartFailed": {
+    "message": "The picker cannot start on this page. Reload the page and try again."
+  },
+  "reloadFailed": {
+    "message": "Reload failed. Reload the page manually."
+  },
+  "deleteFailed": {
+    "message": "Could not delete the rule. Try again."
+  },
+  "whitelistHeading": {
+    "message": "Site whitelist"
+  },
+  "whitelistDesc": {
+    "message": "Sites on the whitelist are never blocked. Entries also cover subdomains."
+  },
+  "whitelistPlaceholder": {
+    "message": "example.com or https://example.com/page"
+  },
+  "whitelistInputAria": {
+    "message": "Domain to add to the whitelist"
+  },
+  "add": {
+    "message": "Add"
+  },
+  "invalidDomain": {
+    "message": "Enter a valid domain, such as example.com"
+  },
+  "saveFailed": {
+    "message": "Could not save. Try again."
+  },
+  "removeFailed": {
+    "message": "Could not remove. Try again."
+  },
+  "whitelistEmpty": {
+    "message": "The whitelist is empty"
+  },
+  "remove": {
+    "message": "Remove"
+  },
+  "removeFromWhitelistAria": {
+    "message": "Remove $1 from the whitelist"
+  },
+  "allRulesHeading": {
+    "message": "All blocking rules"
+  },
+  "allRulesDesc": {
+    "message": "Grouped by site, with subdomains listed separately. Delete a rule and reload the page to restore the element."
+  },
+  "rulesEmpty": {
+    "message": "No blocking rules yet"
+  },
+  "ruleCountOne": {
+    "message": "1 rule"
+  },
+  "ruleCountMany": {
+    "message": "$1 rules"
+  },
+  "footerDesktopPrefix": {
+    "message": "In the picker, expand or shrink the range and confirm to block; press"
+  },
+  "footerDesktopSuffix": {
+    "message": "to exit."
+  },
+  "footerTouch": {
+    "message": "After selecting an element, adjust the range and confirm to block; tap Exit at the top to cancel."
+  },
+  "notifyWhitelistedSite": {
+    "message": "This site is whitelisted. Nothing will be blocked."
+  },
+  "notifyWhitelistEnabled": {
+    "message": "This site was added to the whitelist. Blocking is now off."
+  },
+  "blockSuccess": {
+    "message": "Blocked. It stays hidden after reloads."
+  },
+  "undo": {
+    "message": "Undo"
+  },
+  "undone": {
+    "message": "Undone"
+  },
+  "undoFailed": {
+    "message": "Undo failed. Try again."
+  },
+  "pickerHudTap": {
+    "message": "Tap the element to block"
+  },
+  "pickerHudClick": {
+    "message": "Click the element to block"
+  },
+  "pickerHudReselect": {
+    "message": "Tap another element to reselect"
+  },
+  "exit": {
+    "message": "Exit"
+  },
+  "selectionRange": {
+    "message": "Selected range"
+  },
+  "selectionDepth": {
+    "message": "Level $1"
+  },
+  "rangePanelAria": {
+    "message": "Blocking range"
+  },
+  "shrinkRange": {
+    "message": "Shrink"
+  },
+  "growRange": {
+    "message": "Expand"
+  },
+  "reselect": {
+    "message": "Reselect"
+  },
+  "block": {
+    "message": "Block"
+  },
+  "shrinkRangeTitle": {
+    "message": "Shrink to a smaller range (↓)"
+  },
+  "growRangeTitle": {
+    "message": "Expand to the parent range (↑)"
+  },
+  "blockTitle": {
+    "message": "Block this range (Enter)"
+  },
+  "pickerHintBar": {
+    "message": "↑ Expand · ↓ Shrink · Enter Block · Esc Exit"
+  },
+  "outermostRange": {
+    "message": "This is already the outermost range."
+  },
+  "elementGone": {
+    "message": "The selected element is no longer on the page. Select it again."
+  },
+  "selectorFailed": {
+    "message": "A selector cannot be generated for this range. Adjust the range."
+  },
+  "alreadyBlocked": {
+    "message": "This range is already blocked."
+  },
+  "blocking": {
+    "message": "Blocking…"
+  },
+  "extensionUpdated": {
+    "message": "The extension was updated. Reload the page and try again."
+  },
+  "siteWhitelisted": {
+    "message": "This site is whitelisted."
+  },
+  "ruleLimit": {
+    "message": "This site has reached the rule limit."
+  },
+  "noSelector": {
+    "message": "No selector can be generated for this range"
+  }
+}

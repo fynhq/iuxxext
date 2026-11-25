@@ -1,0 +1,287 @@
+{
+  "extensionName": {
+    "message": "IUxx 元素屏蔽"
+  },
+  "extensionDescription": {
+    "message": "点选网页上的任意元素，调整范围后确认屏蔽，刷新后依然生效；支持网站白名单。"
+  },
+  "actionTitle": {
+    "message": "IUxx 元素屏蔽"
+  },
+  "commandStartPicker": {
+    "message": "开始选择要屏蔽的元素"
+  },
+  "menuBlockElement": {
+    "message": "屏蔽此元素（IUxx）"
+  },
+  "brandSubtitle": {
+    "message": "元素屏蔽"
+  },
+  "settings": {
+    "message": "设置"
+  },
+  "optionsPageTitle": {
+    "message": "设置 · IUxx 元素屏蔽"
+  },
+  "optionsIntro": {
+    "message": "点选网页元素、调整范围后确认屏蔽，刷新后依然生效。"
+  },
+  "unsupportedTitle": {
+    "message": "此页面不支持屏蔽"
+  },
+  "unsupportedText": {
+    "message": "浏览器内置页、扩展商店、本地文件等页面无法注入屏蔽脚本，请切换到普通网页后再试。"
+  },
+  "siteStateEnabledNone": {
+    "message": "已启用 · 暂无屏蔽规则"
+  },
+  "siteStateEnabledOne": {
+    "message": "已启用 · 1 条屏蔽规则"
+  },
+  "siteStateEnabledMany": {
+    "message": "已启用 · $1 条屏蔽规则"
+  },
+  "siteStateWhitelisted": {
+    "message": "已加入白名单，此网站不屏蔽"
+  },
+  "siteStateWhitelistedEntry": {
+    "message": "已在白名单（$1），此网站不屏蔽"
+  },
+  "siteToggleTitle": {
+    "message": "在此网站启用元素屏蔽"
+  },
+  "pickButton": {
+    "message": "选择要屏蔽的元素"
+  },
+  "pickButtonStarting": {
+    "message": "正在启动选择器…"
+  },
+  "pickerHint": {
+    "message": "点选元素后可调整范围，确认后屏蔽"
+  },
+  "pickerHintShortcut": {
+    "message": "快捷键 Ctrl+Alt+X（macOS：Ctrl+Cmd+X）"
+  },
+  "pickerHintWhitelisted": {
+    "message": "关闭上方开关即可恢复对此网站的屏蔽"
+  },
+  "rulesHeading": {
+    "message": "此网站已屏蔽"
+  },
+  "blockedElement": {
+    "message": "已屏蔽元素"
+  },
+  "rulesEmptySite": {
+    "message": "还没有屏蔽这个网站的元素"
+  },
+  "delete": {
+    "message": "删除"
+  },
+  "deleteRuleAria": {
+    "message": "删除这条屏蔽规则"
+  },
+  "footerOptionsLink": {
+    "message": "白名单与全部规则"
+  },
+  "accessInjectTitle": {
+    "message": "内容脚本未运行"
+  },
+  "accessInjectText": {
+    "message": "当前页面可能是在扩展安装或更新前打开的，刷新页面后即可使用。"
+  },
+  "refreshPage": {
+    "message": "刷新页面"
+  },
+  "accessPartialTitle": {
+    "message": "网站访问权限未完整授予"
+  },
+  "accessMissingTitle": {
+    "message": "缺少网站访问权限"
+  },
+  "accessPartialText": {
+    "message": "当前页面可临时使用，但刷新或打开其他网站后屏蔽规则可能无法自动生效。请允许访问所有网站。"
+  },
+  "accessMissingText": {
+    "message": "屏蔽规则需要在页面加载时运行脚本，但当前没有网站访问权限。请允许访问所有网站后重试。"
+  },
+  "accessManualTitle": {
+    "message": "需要手动授权"
+  },
+  "accessManualText": {
+    "message": "自动授权未完成。请在浏览器扩展设置中允许“访问所有网站”。Firefox Android 如没有该入口，请重新安装并在安装提示中允许网站访问。"
+  },
+  "allowSiteAccess": {
+    "message": "允许访问网站"
+  },
+  "requesting": {
+    "message": "正在请求…"
+  },
+  "retryGrant": {
+    "message": "重试授权"
+  },
+  "toggleFailed": {
+    "message": "操作失败，请重试"
+  },
+  "permissionMissing": {
+    "message": "缺少网站访问权限，请先允许访问"
+  },
+  "contentScriptMissing": {
+    "message": "内容脚本未运行，请刷新页面后重试"
+  },
+  "pickerStartFailed": {
+    "message": "无法在这个页面启动选择器，请刷新页面后重试"
+  },
+  "reloadFailed": {
+    "message": "刷新失败，请手动刷新页面"
+  },
+  "deleteFailed": {
+    "message": "删除失败，请重试"
+  },
+  "whitelistHeading": {
+    "message": "网站白名单"
+  },
+  "whitelistDesc": {
+    "message": "白名单中的网站不会应用任何屏蔽规则，其子域名同样生效。"
+  },
+  "whitelistPlaceholder": {
+    "message": "example.com 或 https://example.com/page"
+  },
+  "whitelistInputAria": {
+    "message": "要加入白名单的域名"
+  },
+  "add": {
+    "message": "添加"
+  },
+  "invalidDomain": {
+    "message": "请输入有效的域名，例如 example.com"
+  },
+  "saveFailed": {
+    "message": "保存失败，请重试"
+  },
+  "removeFailed": {
+    "message": "移除失败，请重试"
+  },
+  "whitelistEmpty": {
+    "message": "白名单为空"
+  },
+  "remove": {
+    "message": "移除"
+  },
+  "removeFromWhitelistAria": {
+    "message": "将 $1 移出白名单"
+  },
+  "allRulesHeading": {
+    "message": "全部屏蔽规则"
+  },
+  "allRulesDesc": {
+    "message": "按主域名归类、子域名单独列出。删除规则后刷新页面即可恢复。"
+  },
+  "rulesEmpty": {
+    "message": "还没有任何屏蔽规则"
+  },
+  "ruleCountOne": {
+    "message": "1 条"
+  },
+  "ruleCountMany": {
+    "message": "$1 条"
+  },
+  "footerDesktopPrefix": {
+    "message": "使用元素选择器时可扩大/缩小范围，确认后才屏蔽；按"
+  },
+  "footerDesktopSuffix": {
+    "message": "退出。"
+  },
+  "footerTouch": {
+    "message": "选择元素后可调整范围，确认后才屏蔽；点顶部“退出”可取消。"
+  },
+  "notifyWhitelistedSite": {
+    "message": "此网站已在白名单中，不会屏蔽元素"
+  },
+  "notifyWhitelistEnabled": {
+    "message": "此网站已加入白名单，屏蔽已停用"
+  },
+  "blockSuccess": {
+    "message": "已屏蔽，刷新页面后仍生效"
+  },
+  "undo": {
+    "message": "撤销"
+  },
+  "undone": {
+    "message": "已撤销"
+  },
+  "undoFailed": {
+    "message": "撤销失败，请重试"
+  },
+  "pickerHudTap": {
+    "message": "轻点要屏蔽的元素"
+  },
+  "pickerHudClick": {
+    "message": "点击要屏蔽的元素"
+  },
+  "pickerHudReselect": {
+    "message": "轻点其他元素可重选"
+  },
+  "exit": {
+    "message": "退出"
+  },
+  "selectionRange": {
+    "message": "已选范围"
+  },
+  "selectionDepth": {
+    "message": "第 $1 层"
+  },
+  "rangePanelAria": {
+    "message": "屏蔽范围"
+  },
+  "shrinkRange": {
+    "message": "缩小范围"
+  },
+  "growRange": {
+    "message": "扩大范围"
+  },
+  "reselect": {
+    "message": "重选"
+  },
+  "block": {
+    "message": "屏蔽"
+  },
+  "shrinkRangeTitle": {
+    "message": "缩小到更小的范围（↓）"
+  },
+  "growRangeTitle": {
+    "message": "扩大到父级范围（↑）"
+  },
+  "blockTitle": {
+    "message": "确认屏蔽（Enter）"
+  },
+  "pickerHintBar": {
+    "message": "↑ 扩大 · ↓ 缩小 · Enter 屏蔽 · Esc 退出"
+  },
+  "outermostRange": {
+    "message": "已经是最外层范围"
+  },
+  "elementGone": {
+    "message": "所选元素已不在页面上，请重新选择"
+  },
+  "selectorFailed": {
+    "message": "无法为这个范围生成选择器，请调整范围"
+  },
+  "alreadyBlocked": {
+    "message": "这个范围已在屏蔽列表中"
+  },
+  "blocking": {
+    "message": "屏蔽中…"
+  },
+  "extensionUpdated": {
+    "message": "扩展已更新，请刷新页面后重试"
+  },
+  "siteWhitelisted": {
+    "message": "此网站已在白名单中"
+  },
+  "ruleLimit": {
+    "message": "此网站的屏蔽规则已达上限"
+  },
+  "noSelector": {
+    "message": "无法为这个范围生成选择器"
+  }
+}

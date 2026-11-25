@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title data-i18n="extensionName">IUxx Element Blocker</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <span class="logo-mark" aria-hidden="true"></span>
+      <div class="brand-text">
+        <strong>IUxx</strong>
+        <span data-i18n="brandSubtitle">Element Blocker</span>
+      </div>
+    </div>
+    <button id="open-options" class="ghost-btn" type="button" data-i18n="settings">Settings</button>
+  </header>
+
+  <main>
+    <section id="unsupported" class="notice hidden">
+      <p class="notice-title" data-i18n="unsupportedTitle">Blocking is not available on this page</p>
+      <p id="unsupported-text" class="notice-text" data-i18n="unsupportedText">Browser-internal pages, extension stores, local files, and similar pages do not support element blocking. Open a regular web page and try again.</p>
+    </section>
+
+    <section id="content" class="hidden">
+      <section id="access-notice" class="access-notice hidden" role="alert">
+        <p id="access-title" class="access-title"></p>
+        <p id="access-text" class="access-text"></p>
+        <div class="access-actions">
+          <button id="access-action" class="access-btn" type="button"></button>
+        </div>
+      </section>
+
+      <div class="site-row">
+        <div class="site-meta">
+          <div id="hostname" class="hostname">example.com</div>
+          <div id="site-state" class="site-state"></div>
+        </div>
+        <label class="switch" title="Enable element blocking on this site" data-i18n-title="siteToggleTitle">
+          <input id="site-toggle" type="checkbox" aria-label="Enable element blocking on this site" data-i18n-aria-label="siteToggleTitle">
+          <span class="track"><span class="thumb"></span></span>
+        </label>
+      </div>
+
+      <div class="pick-area">
+        <button id="pick" class="primary-btn" type="button" data-i18n="pickButton">Select an element to block</button>
+        <p id="hint" class="hint" data-i18n="pickerHint">Click an element, adjust the range, then confirm</p>
+      </div>
+
+      <section class="rules">
+        <div class="rules-head">
+          <h2 data-i18n="rulesHeading">Blocked on this site</h2>
+          <span id="rule-count" class="count">0</span>
+        </div>
+        <ul id="rule-list" class="rule-list"></ul>
+        <p id="empty" class="empty" data-i18n="rulesEmptySite">No blocked elements on this site yet</p>
+      </section>
+    </section>
+  </main>
+
+  <footer>
+    <button id="options-link" class="link-btn" type="button" data-i18n="footerOptionsLink">Whitelist and all rules</button>
+  </footer>
+
+  <script src="shared.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

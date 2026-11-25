@@ -1,0 +1,345 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to publish to GitHub Releases (defaults to the newest v* tag)"
+        required: false
+  schedule:
+    - cron: "23 */6 * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+env:
+  AMO_API: https://addons.mozilla.org/api/v5/addons
+  AMO_LICENSE: MIT
+
+jobs:
+  submit:
+    name: Submit version to AMO
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Verify tag matches manifest version
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION=$(jq -r .version src/manifest.json)
+          if [ "v$VERSION" != "$GITHUB_REF_NAME" ]; then
+            echo "Tag $GITHUB_REF_NAME does not match manifest version $VERSION" >&2
+            exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Lint and package
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx --yes web-ext@10 lint --source-dir src
+          npx --yes web-ext@10 build --source-dir src --overwrite-dest
+          ls -l web-ext-artifacts
+
+      - name: Submit version to AMO
+        shell: bash
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          AMO_JWT_ISSUER: ${{ secrets.WEB_EXT_API_KEY }}
+          AMO_JWT_SECRET: ${{ secrets.WEB_EXT_API_SECRET }}
+        run: |
+          set -euo pipefail
+          if [ -z "${AMO_JWT_ISSUER:-}" ] || [ -z "${AMO_JWT_SECRET:-}" ]; then
+            echo "Repository secrets WEB_EXT_API_KEY and WEB_EXT_API_SECRET are required." >&2
+            exit 1
+          fi
+
+          ADDON_ID=$(jq -r '.browser_specific_settings.gecko.id' src/manifest.json)
+          ADDON=$(node -e 'process.stdout.write(encodeURIComponent(process.argv[1]))' "$ADDON_ID")
+
+          TOKEN=$(node -e '
+            const crypto = require("crypto");
+            const enc = (value) => Buffer.from(JSON.stringify(value)).toString("base64url");
+            const iat = Math.floor(Date.now() / 1000);
+            const unsigned = [
+              enc({ alg: "HS256", typ: "JWT" }),
+              enc({
+                iss: process.env.AMO_JWT_ISSUER,
+                jti: crypto.randomUUID(),
+                iat,
+                exp: iat + 240,
+              }),
+            ].join(".");
+            const signature = crypto
+              .createHmac("sha256", process.env.AMO_JWT_SECRET)
+              .update(unsigned)
+              .digest("base64url");
+            process.stdout.write(`${unsigned}.${signature}`);
+          ')
+          AUTH="Authorization: JWT $TOKEN"
+
+          ADDON_CODE=$(curl -sS -o /dev/null -w "%{http_code}" -H "$AUTH" "$AMO_API/addon/$ADDON/")
+          case "$ADDON_CODE" in
+            200) ;;
+            401|403)
+              echo "AMO rejected the API credentials (HTTP $ADDON_CODE)." >&2
+              exit 1
+              ;;
+            404)
+              echo "Add-on $ADDON_ID is not on AMO yet; the first version must be submitted manually. Skipping AMO submission."
+              exit 0
+              ;;
+            *)
+              echo "Unexpected HTTP $ADDON_CODE while looking up add-on $ADDON_ID." >&2
+              exit 1
+              ;;
+          esac
+
+          VERSION_CODE=$(curl -sS -o version.json -w "%{http_code}" -H "$AUTH" "$AMO_API/addon/$ADDON/versions/$VERSION/")
+          if [ "$VERSION_CODE" = "200" ]; then
+            STATUS=$(jq -r '.file.status // empty' version.json)
+            case "$STATUS" in
+              public|unreviewed)
+                echo "AMO already has version $VERSION (status: $STATUS); nothing to submit."
+                exit 0
+                ;;
+              *)
+                echo "AMO already has version $VERSION with status '$STATUS'; bump the manifest version before tagging." >&2
+                exit 1
+                ;;
+            esac
+          fi
+          if [ "$VERSION_CODE" != "404" ]; then
+            cat version.json >&2
+            echo "Unexpected HTTP $VERSION_CODE while checking version $VERSION." >&2
+            exit 1
+          fi
+
+          PKG=$(find web-ext-artifacts -maxdepth 1 -name '*.zip' -print -quit)
+          if [ -z "$PKG" ]; then
+            echo "No package found in web-ext-artifacts/." >&2
+            exit 1
+          fi
+
+          UPLOAD=$(curl -sS -H "$AUTH" -F "upload=@$PKG" -F "channel=listed" "$AMO_API/upload/")
+          UUID=$(jq -r '.uuid // empty' <<<"$UPLOAD")
+          if [ -z "$UUID" ]; then
+            echo "$UPLOAD" >&2
+            echo "AMO upload failed." >&2
+            exit 1
+          fi
+
+          PROCESSED=false
+          for _ in $(seq 1 60); do
+            STATUS_RESPONSE=$(curl -sS -H "$AUTH" "$AMO_API/upload/$UUID/")
+            if [ "$(jq -r '.processed // false' <<<"$STATUS_RESPONSE")" = "true" ]; then
+              PROCESSED=true
+              break
+            fi
+            sleep 2
+          done
+          if [ "$PROCESSED" != "true" ]; then
+            echo "Timed out waiting for AMO validation." >&2
+            exit 1
+          fi
+          if [ "$(jq -r '.valid // false' <<<"$STATUS_RESPONSE")" != "true" ]; then
+            jq '{valid, processed, version, channel, validation: (.validation | {errors, warnings, notices})}' <<<"$STATUS_RESPONSE" >&2
+            echo "AMO validation failed for $PKG." >&2
+            exit 1
+          fi
+
+          PAYLOAD=$(jq -n --arg upload "$UUID" --arg license "$AMO_LICENSE" '{upload: $upload, license: $license}')
+          CREATE_CODE=$(curl -sS -o created.json -w "%{http_code}" -H "$AUTH" -H "Content-Type: application/json" -d "$PAYLOAD" "$AMO_API/addon/$ADDON/versions/")
+          if [ "$CREATE_CODE" -lt 200 ] || [ "$CREATE_CODE" -ge 300 ]; then
+            cat created.json >&2
+            echo "Failed to create AMO version $VERSION (HTTP $CREATE_CODE)." >&2
+            exit 1
+          fi
+
+          CREATED_VERSION=$(jq -r '.version // empty' created.json)
+          if [ -n "$CREATED_VERSION" ] && [ "$CREATED_VERSION" != "$VERSION" ]; then
+            cat created.json >&2
+            echo "AMO created version '$CREATED_VERSION', expected '$VERSION'." >&2
+            exit 1
+          fi
+          echo "Submitted version $VERSION to AMO for review (channel=$(jq -r '.channel // "listed"' created.json))."
+
+  publish:
+    name: Publish GitHub release from AMO
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Resolve tag
+        id: tag
+        shell: bash
+        env:
+          INPUT_TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+          TAG="${INPUT_TAG:-}"
+          if [ -z "$TAG" ]; then
+            TAG=$(git tag --list 'v*' --sort=-v:refname | head -n 1)
+          fi
+          if [ -z "$TAG" ]; then
+            echo "No v* tag found in this repository." >&2
+            exit 1
+          fi
+          if ! git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
+            echo "Tag '$TAG' does not exist." >&2
+            exit 1
+          fi
+          VERSION="${TAG#v}"
+          MANIFEST_VERSION=$(git show "$TAG:src/manifest.json" | jq -r .version)
+          if [ "$MANIFEST_VERSION" != "$VERSION" ]; then
+            echo "Tag $TAG does not match manifest version $MANIFEST_VERSION." >&2
+            exit 1
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Check AMO review status
+        id: amo
+        shell: bash
+        env:
+          VERSION: ${{ steps.tag.outputs.version }}
+        run: |
+          set -euo pipefail
+          ADDON_ID=$(jq -r '.browser_specific_settings.gecko.id' src/manifest.json)
+          ADDON=$(node -e 'process.stdout.write(encodeURIComponent(process.argv[1]))' "$ADDON_ID")
+          RESPONSE=$(curl -sS -w "\n%{http_code}" "$AMO_API/addon/$ADDON/versions/$VERSION/")
+          CODE=$(tail -n 1 <<<"$RESPONSE")
+          BODY=$(sed '$d' <<<"$RESPONSE")
+          if [ "$CODE" = "404" ]; then
+            echo "public=false" >> "$GITHUB_OUTPUT"
+            echo "AMO does not expose version $VERSION yet (pending review or not submitted)."
+            exit 0
+          fi
+          if [ "$CODE" != "200" ]; then
+            echo "$BODY" >&2
+            echo "Unexpected HTTP $CODE from AMO." >&2
+            exit 1
+          fi
+          CHANNEL=$(jq -r '.channel // empty' <<<"$BODY")
+          STATUS=$(jq -r '.file.status // empty' <<<"$BODY")
+          if [ "$CHANNEL" = "listed" ] && [ "$STATUS" = "public" ]; then
+            echo "public=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "public=false" >> "$GITHUB_OUTPUT"
+            echo "AMO version $VERSION is not public yet (channel=$CHANNEL, status=$STATUS)."
+          fi
+
+      - name: Fail on manual run while review is pending
+        if: github.event_name == 'workflow_dispatch' && steps.amo.outputs.public != 'true'
+        shell: bash
+        env:
+          VERSION: ${{ steps.tag.outputs.version }}
+        run: |
+          echo "AMO version $VERSION is not public yet; rerun after the review is approved." >&2
+          exit 1
+
+      - name: Check existing release assets
+        id: assets
+        if: github.event_name == 'schedule' && steps.amo.outputs.public == 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.tag.outputs.tag }}
+          VERSION: ${{ steps.tag.outputs.version }}
+        run: |
+          set -euo pipefail
+          RELEASE_JSON=$(gh release view "$TAG" --json assets,isDraft 2>/dev/null || true)
+          if [ -z "$RELEASE_JSON" ]; then
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          IS_DRAFT=$(jq -r '.isDraft // false' <<<"$RELEASE_JSON")
+          ASSETS=$(jq -r '.assets[].name' <<<"$RELEASE_JSON")
+          if [ "$IS_DRAFT" != "true" ] \
+            && grep -qx "iuxx_firefox_v${VERSION}.xpi" <<<"$ASSETS" \
+            && grep -qx "SHA256SUMS" <<<"$ASSETS"; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "Release $TAG already has the signed XPI and SHA256SUMS; skipping."
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Download AMO-signed XPI and checksum
+        if: steps.amo.outputs.public == 'true' && steps.assets.outputs.skip != 'true'
+        shell: bash
+        env:
+          VERSION: ${{ steps.tag.outputs.version }}
+        run: |
+          set -euo pipefail
+          ADDON_ID=$(jq -r '.browser_specific_settings.gecko.id' src/manifest.json)
+          ADDON=$(node -e 'process.stdout.write(encodeURIComponent(process.argv[1]))' "$ADDON_ID")
+          DETAIL=$(curl -fsSL "$AMO_API/addon/$ADDON/versions/$VERSION/")
+          FILE_URL=$(jq -r '.file.url // empty' <<<"$DETAIL")
+          AMO_HASH=$(jq -r '.file.hash // empty' <<<"$DETAIL")
+          if [ -z "$FILE_URL" ]; then
+            echo "AMO version $VERSION has no signed file yet." >&2
+            exit 1
+          fi
+          mkdir -p release
+          ASSET="iuxx_firefox_v${VERSION}.xpi"
+          curl -fsSL "$FILE_URL" -o "release/$ASSET"
+          if [ -n "$AMO_HASH" ]; then
+            ACTUAL_HASH="sha256:$(sha256sum "release/$ASSET" | cut -d' ' -f1)"
+            if [ "$AMO_HASH" != "$ACTUAL_HASH" ]; then
+              echo "Downloaded XPI hash mismatch: AMO=$AMO_HASH actual=$ACTUAL_HASH" >&2
+              exit 1
+            fi
+          fi
+          INNER_VERSION=$(unzip -p "release/$ASSET" manifest.json | jq -r .version)
+          INNER_ID=$(unzip -p "release/$ASSET" manifest.json | jq -r '.browser_specific_settings.gecko.id // .applications.gecko.id // empty')
+          if [ "$INNER_VERSION" != "$VERSION" ] || [ "$INNER_ID" != "$ADDON_ID" ]; then
+            echo "Downloaded XPI mismatch: version=$INNER_VERSION id=$INNER_ID" >&2
+            exit 1
+          fi
+          (cd release && sha256sum "$ASSET" > SHA256SUMS)
+          (cd release && sha256sum -c SHA256SUMS)
+
+      - name: Create or update GitHub release
+        if: steps.amo.outputs.public == 'true' && steps.assets.outputs.skip != 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.tag.outputs.tag }}
+          VERSION: ${{ steps.tag.outputs.version }}
+        run: |
+          set -euo pipefail
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" release/* --clobber
+            if [ "$(gh release view "$TAG" --json isDraft --jq .isDraft)" = "true" ]; then
+              gh release edit "$TAG" --draft=false
+              echo "Published draft release $TAG."
+            fi
+          else
+            gh release create "$TAG" release/* \
+              --title "iuxx_firefox_v${VERSION}" \
+              --generate-notes \
+              --verify-tag
+          fi
