@@ -1,13 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16">
   <style>
-    .line { stroke: #15141a; }
-    .spark { fill: #15141a; }
+    .line { stroke: #5b5b66; }
+    .spark { fill: #5b5b66; }
     @media (prefers-color-scheme: dark) {
       .line { stroke: #fbfbfe; }
       .spark { fill: #fbfbfe; }
     }
   </style>
-  <path class="line" d="M3 13 9 7" fill="none" stroke="#15141a" stroke-width="1.5" stroke-linecap="round"/>
-  <path class="spark" fill="#15141a" d="M11.5 2Q12 4 14 4.5Q12 5 11.5 7Q11 5 9 4.5Q11 4 11.5 2Z"/>
-  <path class="spark" fill="#15141a" d="M4.5 2Q4.8 3.2 6 3.5Q4.8 3.8 4.5 5Q4.2 3.8 3 3.5Q4.2 3.2 4.5 2Z"/>
+  <path class="line" d="M3 13 9 7" fill="none" stroke="#5b5b66" stroke-width="1.5" stroke-linecap="round"/>
+  <path class="spark" fill="#5b5b66" d="M11.5 2Q12 4 14 4.5Q12 5 11.5 7Q11 5 9 4.5Q11 4 11.5 2Z"/>
+  <path class="spark" fill="#5b5b66" d="M4.5 2Q4.8 3.2 6 3.5Q4.8 3.8 4.5 5Q4.2 3.8 3 3.5Q4.2 3.2 4.5 2Z"/>
 </svg>
