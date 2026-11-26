@@ -10,6 +10,8 @@
 
 # IUxx
 
+**Less noise, more calm.**
+
 IUxx is a Firefox extension that hides any element on a web page. Click the element, widen or narrow the selection to the container you want gone, and confirm. IUxx stores a CSS selector for that host and applies it on every visit, so blocked elements stay hidden after reloads.
 
 It supports Firefox 140+ on Windows, macOS and Linux, and Firefox for Android 142+.
@@ -72,6 +74,8 @@ Released under the MIT License. See [LICENSE](LICENSE).
 <a id="chinese"></a>
 
 # IUxx
+
+**删繁就简，一页清欢。**
 
 IUxx 是一个 Firefox 扩展：点选网页上的任意元素，调整范围后确认屏蔽；扩展会为该网站保存一条 CSS 选择器，之后每次访问都会自动隐藏对应元素，刷新后依然生效。
 
