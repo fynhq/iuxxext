@@ -1,7 +1,11 @@
 <a id="english"></a>
 
 <p align="center">
-  <img src="src/icons/icon128.png" alt="IUxx logo" width="128" />
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="src/icons/logo-dark-1024.png">
+    <source media="(prefers-color-scheme: light)" srcset="src/icons/logo-light-1024.png">
+    <img src="src/icons/logo-light-1024.png" alt="IUxx logo" width="128">
+  </picture>
 </p>
 
 # IUxx
