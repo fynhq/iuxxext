@@ -19,26 +19,26 @@
     <section class="card">
       <div class="card-head">
         <div>
-          <h2 data-i18n="whitelistHeading">Site whitelist</h2>
-          <p class="card-desc" data-i18n="whitelistDesc">Sites on the whitelist are never blocked. Entries also cover subdomains.</p>
+          <h2 data-i18n="whitelistHeading">Exceptions</h2>
+          <p class="card-desc" data-i18n="whitelistDesc">Sites on the exceptions list are never blocked. Entries also cover subdomains.</p>
         </div>
       </div>
 
       <form id="wl-form" class="wl-form">
-        <input id="wl-input" type="text" placeholder="example.com or https://example.com/page" data-i18n-placeholder="whitelistPlaceholder" autocomplete="off" spellcheck="false" aria-label="Domain to add to the whitelist" data-i18n-aria-label="whitelistInputAria">
+        <input id="wl-input" type="text" placeholder="example.com or https://example.com/page" data-i18n-placeholder="whitelistPlaceholder" autocomplete="off" spellcheck="false" aria-label="Domain to add to the exceptions list" data-i18n-aria-label="whitelistInputAria">
         <button id="wl-add" type="submit" data-i18n="add">Add</button>
       </form>
       <p id="wl-error" class="form-error hidden"></p>
 
       <ul id="wl-list" class="wl-list"></ul>
-      <p id="wl-empty" class="empty" data-i18n="whitelistEmpty">The whitelist is empty</p>
+      <p id="wl-empty" class="empty" data-i18n="whitelistEmpty">The exceptions list is empty</p>
     </section>
 
     <section class="card">
       <div class="card-head">
         <div>
           <h2><span data-i18n="allRulesHeading">All blocking rules</span> <span id="rules-count" class="badge">0</span></h2>
-          <p class="card-desc" data-i18n="allRulesDesc">Grouped by site, with subdomains listed separately. Delete a rule and reload the page to restore the element.</p>
+          <p class="card-desc" data-i18n="allRulesDesc">Grouped by site. Delete a rule to restore the element.</p>
         </div>
       </div>
 

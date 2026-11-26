@@ -3,7 +3,7 @@
     "message": "IUxx"
   },
   "extensionDescription": {
-    "message": "点选网页上的任意元素，调整范围后确认屏蔽，刷新后依然生效；支持网站白名单。"
+    "message": "点选网页上的任意元素，调整范围后确认屏蔽，刷新后依然生效；支持网站例外列表。"
   },
   "actionTitle": {
     "message": "IUxx"
@@ -42,10 +42,10 @@
     "message": "已启用 · $1 条屏蔽规则"
   },
   "siteStateWhitelisted": {
-    "message": "已加入白名单，此网站不屏蔽"
+    "message": "已列入例外，此网站不屏蔽"
   },
   "siteStateWhitelistedEntry": {
-    "message": "已在白名单（$1），此网站不屏蔽"
+    "message": "已列入例外（$1），此网站不屏蔽"
   },
   "siteToggleTitle": {
     "message": "在此网站启用元素屏蔽"
@@ -81,7 +81,7 @@
     "message": "删除这条屏蔽规则"
   },
   "footerOptionsLink": {
-    "message": "白名单与全部规则"
+    "message": "例外站点与全部规则"
   },
   "accessInjectTitle": {
     "message": "内容脚本未运行"
@@ -104,20 +104,11 @@
   "accessMissingText": {
     "message": "屏蔽规则需要在页面加载时运行脚本，但当前没有网站访问权限。请允许访问所有网站后重试。"
   },
-  "accessManualTitle": {
-    "message": "需要手动授权"
-  },
-  "accessManualText": {
-    "message": "自动授权未完成。请在浏览器扩展设置中允许“访问所有网站”。Firefox Android 如没有该入口，请重新安装并在安装提示中允许网站访问。"
-  },
   "allowSiteAccess": {
     "message": "允许访问网站"
   },
   "requesting": {
     "message": "正在请求…"
-  },
-  "retryGrant": {
-    "message": "重试授权"
   },
   "toggleFailed": {
     "message": "操作失败，请重试"
@@ -138,16 +129,16 @@
     "message": "删除失败，请重试"
   },
   "whitelistHeading": {
-    "message": "网站白名单"
+    "message": "例外站点"
   },
   "whitelistDesc": {
-    "message": "白名单中的网站不会应用任何屏蔽规则，其子域名同样生效。"
+    "message": "例外列表中的网站不会应用任何屏蔽规则，其子域名同样生效。"
   },
   "whitelistPlaceholder": {
     "message": "example.com 或 https://example.com/page"
   },
   "whitelistInputAria": {
-    "message": "要加入白名单的域名"
+    "message": "要加入例外列表的域名"
   },
   "add": {
     "message": "添加"
@@ -162,19 +153,19 @@
     "message": "移除失败，请重试"
   },
   "whitelistEmpty": {
-    "message": "白名单为空"
+    "message": "例外列表为空"
   },
   "remove": {
     "message": "移除"
   },
   "removeFromWhitelistAria": {
-    "message": "将 $1 移出白名单"
+    "message": "将 $1 移出例外列表"
   },
   "allRulesHeading": {
     "message": "全部屏蔽规则"
   },
   "allRulesDesc": {
-    "message": "按主域名归类、子域名单独列出。删除规则后刷新页面即可恢复。"
+    "message": "按站点分组。删除规则后元素会立即恢复。"
   },
   "rulesEmpty": {
     "message": "还没有任何屏蔽规则"
@@ -195,10 +186,10 @@
     "message": "选择元素后可调整范围，确认后才屏蔽；点顶部“退出”可取消。"
   },
   "notifyWhitelistedSite": {
-    "message": "此网站已在白名单中，不会屏蔽元素"
+    "message": "此网站已列入例外，不会屏蔽元素"
   },
   "notifyWhitelistEnabled": {
-    "message": "此网站已加入白名单，屏蔽已停用"
+    "message": "此网站已加入例外列表，屏蔽已停用"
   },
   "blockSuccess": {
     "message": "已屏蔽，刷新页面后仍生效"
@@ -276,7 +267,7 @@
     "message": "扩展已更新，请刷新页面后重试"
   },
   "siteWhitelisted": {
-    "message": "此网站已在白名单中"
+    "message": "此网站已列入例外。"
   },
   "ruleLimit": {
     "message": "此网站的屏蔽规则已达上限"

@@ -17,35 +17,7 @@
 
   let store = { rules: {}, whitelist: [] };
   let errorTimer = 0;
-  const collapsedDomains = new Set();
-
-  const MULTI_LABEL_SUFFIXES = new Set([
-    'co.uk', 'org.uk', 'ac.uk', 'gov.uk', 'me.uk', 'ltd.uk', 'plc.uk', 'net.uk',
-    'com.cn', 'net.cn', 'org.cn', 'gov.cn', 'edu.cn', 'ac.cn',
-    'com.hk', 'org.hk', 'net.hk', 'edu.hk', 'gov.hk',
-    'com.tw', 'org.tw', 'net.tw', 'idv.tw',
-    'com.au', 'net.au', 'org.au', 'edu.au', 'gov.au',
-    'co.nz', 'net.nz', 'org.nz',
-    'co.jp', 'ne.jp', 'or.jp', 'ac.jp', 'go.jp',
-    'co.kr', 'or.kr', 'ne.kr',
-    'com.sg', 'com.my', 'com.ph', 'com.vn', 'co.th', 'co.id', 'co.in',
-    'co.il', 'co.za', 'co.ke', 'co.ae', 'co.sa',
-    'com.br', 'org.br', 'com.ar', 'com.mx', 'com.tr', 'com.ru', 'com.ua',
-    'com.pl', 'com.pe', 'com.co', 'com.ve', 'com.ec', 'com.uy', 'com.py', 'com.bo',
-    'com.eg', 'com.ng', 'com.pk', 'com.bd'
-  ]);
-
-  function domainOf(host) {
-    const value = String(host || '').toLowerCase().replace(/\.$/, '');
-    if (!value) return '';
-    if (value.startsWith('[') || !value.includes('.')) return value;
-    if (/^\d{1,3}(?:\.\d{1,3}){3}$/.test(value)) return value;
-    const parts = value.split('.');
-    if (parts.length <= 2) return value;
-    const suffix = parts.slice(-2).join('.');
-    const take = MULTI_LABEL_SUFFIXES.has(suffix) ? 3 : 2;
-    return parts.slice(-take).join('.');
-  }
+  const collapsedHosts = new Set();
 
   function ruleCount(count) {
     return t(count === 1 ? 'ruleCountOne' : 'ruleCountMany', [String(count)]);
@@ -178,73 +150,47 @@
   }
 
   function renderRules() {
-    const entries = [];
-    let total = 0;
-    for (const host of Object.keys(store.rules)) {
-      const rules = (store.rules[host] || [])
-        .slice()
-        .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-      if (!rules.length) continue;
-      entries.push({ host, rules });
-      total += rules.length;
-    }
+    const hosts = Object.keys(store.rules)
+      .map((host) => ({
+        host,
+        rules: (store.rules[host] || [])
+          .slice()
+          .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
+      }))
+      .filter((entry) => entry.rules.length)
+      .sort((a, b) => a.host.localeCompare(b.host));
 
+    const total = hosts.reduce((sum, entry) => sum + entry.rules.length, 0);
     els.rulesCount.textContent = String(total);
     els.rulesEmpty.classList.toggle('hidden', total > 0);
     els.rulesRoot.textContent = '';
 
-    const groups = new Map();
-    for (const entry of entries) {
-      const domain = domainOf(entry.host);
-      if (!groups.has(domain)) groups.set(domain, []);
-      groups.get(domain).push(entry);
-    }
-
-    const domains = Array.from(groups.keys()).sort((a, b) => a.localeCompare(b));
-    for (const domain of domains) {
-      const hosts = groups.get(domain).slice().sort((a, b) => a.host.localeCompare(b.host));
-      const domainCount = hosts.reduce((sum, entry) => sum + entry.rules.length, 0);
-
+    for (const entry of hosts) {
       const group = document.createElement('details');
       group.className = 'domain-group';
-      group.open = !collapsedDomains.has(domain);
+      group.open = !collapsedHosts.has(entry.host);
       group.addEventListener('toggle', () => {
-        if (group.open) collapsedDomains.delete(domain);
-        else collapsedDomains.add(domain);
+        if (group.open) collapsedHosts.delete(entry.host);
+        else collapsedHosts.add(entry.host);
       });
 
       const head = document.createElement('summary');
       head.className = 'domain-head';
       const name = document.createElement('span');
       name.className = 'domain-name';
-      name.textContent = domain;
-      name.title = domain;
+      name.textContent = entry.host;
+      name.title = entry.host;
       const count = document.createElement('span');
       count.className = 'domain-count';
-      count.textContent = ruleCount(domainCount);
+      count.textContent = ruleCount(entry.rules.length);
       head.append(name, count);
 
       const body = document.createElement('div');
       body.className = 'domain-body';
-      for (const entry of hosts) {
-        if (!(hosts.length === 1 && entry.host === domain)) {
-          const hostRow = document.createElement('div');
-          hostRow.className = 'host-row';
-          const hostName = document.createElement('span');
-          hostName.className = 'host-name';
-          hostName.textContent = entry.host;
-          hostName.title = entry.host;
-          const hostCount = document.createElement('span');
-          hostCount.className = 'host-count';
-          hostCount.textContent = ruleCount(entry.rules.length);
-          hostRow.append(hostName, hostCount);
-          body.appendChild(hostRow);
-        }
-        const list = document.createElement('ul');
-        list.className = 'rule-list';
-        for (const rule of entry.rules) list.appendChild(buildRuleRow(rule, entry.host));
-        body.appendChild(list);
-      }
+      const list = document.createElement('ul');
+      list.className = 'rule-list';
+      for (const rule of entry.rules) list.appendChild(buildRuleRow(rule, entry.host));
+      body.appendChild(list);
 
       group.append(head, body);
       els.rulesRoot.appendChild(group);

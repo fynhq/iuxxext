@@ -19,8 +19,6 @@
   const hostname = normalizeDomain(location.hostname);
   if (!hostname) return;
 
-  const STYLE_ID = 'iuxx-hide-style';
-  const CURSOR_STYLE_ID = 'iuxx-picker-cursor';
   const HOST_TAG = 'iuxx-picker-host';
   const TOAST_TAG = 'iuxx-toast-host';
 
@@ -39,11 +37,6 @@
     if (!message || typeof message.type !== 'string') return false;
     if (message.type === 'START_PICKER') {
       startPicker();
-      sendResponse({ ok: true });
-      return false;
-    }
-    if (message.type === 'STOP_PICKER') {
-      stopPicker();
       sendResponse({ ok: true });
       return false;
     }
@@ -116,17 +109,13 @@
       return;
     }
     if (!styleEl || !styleEl.isConnected) {
-      styleEl = document.getElementById(STYLE_ID);
-      if (!styleEl) {
-        const root = document.head || document.documentElement;
-        if (!root) {
-          document.addEventListener('DOMContentLoaded', () => renderStyle(selectors), { once: true });
-          return;
-        }
-        styleEl = document.createElement('style');
-        styleEl.id = STYLE_ID;
-        root.appendChild(styleEl);
+      const root = document.head || document.documentElement;
+      if (!root) {
+        document.addEventListener('DOMContentLoaded', () => renderStyle(selectors), { once: true });
+        return;
       }
+      styleEl = document.createElement('style');
+      root.appendChild(styleEl);
     }
     styleEl.textContent = list
       .map((selector) => `${selector} { display: none !important; }`)
@@ -443,7 +432,6 @@
     document.documentElement.appendChild(root);
 
     const cursorStyle = document.createElement('style');
-    cursorStyle.id = CURSOR_STYLE_ID;
     cursorStyle.textContent = 'html, html * { cursor: crosshair !important; }';
     (document.head || document.documentElement).appendChild(cursorStyle);
 

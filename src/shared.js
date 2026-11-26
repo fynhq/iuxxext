@@ -2,7 +2,7 @@
   'use strict';
   if (globalThis.IUXX) return;
 
-  const api = globalThis.browser || globalThis.chrome;
+  const api = browser;
   const RULES_KEY = 'iuxx.rules.v1';
   const WHITELIST_KEY = 'iuxx.whitelist.v1';
   const CACHE_PREFIX = 'iuxx.cache.v1:';
@@ -162,7 +162,6 @@
     WHITELIST_KEY,
     hostOfUrl,
     normalizeDomain,
-    matchingWhitelist,
     isWhitelisted,
     readStore,
     stateForHost,

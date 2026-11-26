@@ -3,7 +3,7 @@
     "message": "IUxx"
   },
   "extensionDescription": {
-    "message": "Click any element on a page, adjust the range, and block it. Rules survive reloads, plus a per-site whitelist."
+    "message": "Click any element on a page, adjust the range, and block it. Rules survive reloads, plus a per-site exception list."
   },
   "actionTitle": {
     "message": "IUxx"
@@ -42,10 +42,10 @@
     "message": "Enabled · $1 rules"
   },
   "siteStateWhitelisted": {
-    "message": "Whitelisted. Blocking is off for this site."
+    "message": "Excluded. Blocking is off for this site."
   },
   "siteStateWhitelistedEntry": {
-    "message": "Whitelisted ($1). Blocking is off for this site."
+    "message": "Excluded ($1). Blocking is off for this site."
   },
   "siteToggleTitle": {
     "message": "Enable element blocking on this site"
@@ -81,7 +81,7 @@
     "message": "Delete this blocking rule"
   },
   "footerOptionsLink": {
-    "message": "Whitelist and all rules"
+    "message": "Exceptions and all rules"
   },
   "accessInjectTitle": {
     "message": "Content script is not running"
@@ -104,20 +104,11 @@
   "accessMissingText": {
     "message": "Blocking needs to run a script when the page loads, but site access is missing. Allow access to all sites and try again."
   },
-  "accessManualTitle": {
-    "message": "Manual permission required"
-  },
-  "accessManualText": {
-    "message": "Automatic permission was not completed. Allow “Access all sites” in the browser's extension settings. On Firefox for Android, if that setting is unavailable, reinstall the extension and allow site access in the install prompt."
-  },
   "allowSiteAccess": {
     "message": "Allow site access"
   },
   "requesting": {
     "message": "Requesting…"
-  },
-  "retryGrant": {
-    "message": "Retry permission"
   },
   "toggleFailed": {
     "message": "Something went wrong. Try again."
@@ -138,16 +129,16 @@
     "message": "Could not delete the rule. Try again."
   },
   "whitelistHeading": {
-    "message": "Site whitelist"
+    "message": "Exceptions"
   },
   "whitelistDesc": {
-    "message": "Sites on the whitelist are never blocked. Entries also cover subdomains."
+    "message": "Sites on the exceptions list are never blocked. Entries also cover subdomains."
   },
   "whitelistPlaceholder": {
     "message": "example.com or https://example.com/page"
   },
   "whitelistInputAria": {
-    "message": "Domain to add to the whitelist"
+    "message": "Domain to add to the exceptions list"
   },
   "add": {
     "message": "Add"
@@ -162,19 +153,19 @@
     "message": "Could not remove. Try again."
   },
   "whitelistEmpty": {
-    "message": "The whitelist is empty"
+    "message": "The exceptions list is empty"
   },
   "remove": {
     "message": "Remove"
   },
   "removeFromWhitelistAria": {
-    "message": "Remove $1 from the whitelist"
+    "message": "Remove $1 from the exceptions"
   },
   "allRulesHeading": {
     "message": "All blocking rules"
   },
   "allRulesDesc": {
-    "message": "Grouped by site, with subdomains listed separately. Delete a rule and reload the page to restore the element."
+    "message": "Grouped by site. Delete a rule to restore the element."
   },
   "rulesEmpty": {
     "message": "No blocking rules yet"
@@ -195,10 +186,10 @@
     "message": "After selecting an element, adjust the range and confirm to block; tap Exit at the top to cancel."
   },
   "notifyWhitelistedSite": {
-    "message": "This site is whitelisted. Nothing will be blocked."
+    "message": "This site is excluded. Nothing will be blocked."
   },
   "notifyWhitelistEnabled": {
-    "message": "This site was added to the whitelist. Blocking is now off."
+    "message": "This site was added to the exceptions. Blocking is now off."
   },
   "blockSuccess": {
     "message": "Blocked. It stays hidden after reloads."
@@ -276,7 +267,7 @@
     "message": "The extension was updated. Reload the page and try again."
   },
   "siteWhitelisted": {
-    "message": "This site is whitelisted."
+    "message": "This site is excluded."
   },
   "ruleLimit": {
     "message": "This site has reached the rule limit."

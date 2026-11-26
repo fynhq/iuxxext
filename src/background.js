@@ -1,7 +1,5 @@
-if (typeof importScripts === 'function') importScripts('shared.js');
-
 const { api, RULES_KEY, WHITELIST_KEY, readStore, isWhitelisted, normalizeDomain, t } = IUXX;
-const menus = api.menus || api.contextMenus;
+const menus = api.menus;
 const MENU_ID = 'iuxx-block-element';
 const MAX_RULES_PER_HOST = 300;
 
@@ -13,16 +11,9 @@ function enqueue(task) {
   return run;
 }
 
-function removeAllMenus() {
-  if (!menus || typeof menus.removeAll !== 'function') return Promise.resolve();
-  if (globalThis.browser) return menus.removeAll();
-  return new Promise((resolve) => menus.removeAll(() => resolve()));
-}
-
 api.runtime.onInstalled.addListener(async () => {
-  if (!menus || typeof menus.create !== 'function') return;
   try {
-    await removeAllMenus();
+    await menus.removeAll();
     await menus.create({
       id: MENU_ID,
       title: t('menuBlockElement'),
@@ -32,23 +23,19 @@ api.runtime.onInstalled.addListener(async () => {
   }
 });
 
-if (menus && menus.onClicked) {
-  menus.onClicked.addListener((info, tab) => {
-    if (info.menuItemId !== MENU_ID || !tab || typeof tab.id !== 'number') return;
-    openPicker(tab.id);
-  });
-}
+menus.onClicked.addListener((info, tab) => {
+  if (info.menuItemId !== MENU_ID || !tab || typeof tab.id !== 'number') return;
+  openPicker(tab.id);
+});
 
-if (api.commands && api.commands.onCommand) {
-  api.commands.onCommand.addListener(async (command) => {
-    if (command !== 'start-picker') return;
-    try {
-      const [tab] = await api.tabs.query({ active: true, currentWindow: true });
-      if (tab && typeof tab.id === 'number') openPicker(tab.id);
-    } catch {
-    }
-  });
-}
+api.commands.onCommand.addListener(async (command) => {
+  if (command !== 'start-picker') return;
+  try {
+    const [tab] = await api.tabs.query({ active: true, currentWindow: true });
+    if (tab && typeof tab.id === 'number') openPicker(tab.id);
+  } catch {
+  }
+});
 
 async function openPicker(tabId) {
   const message = { type: 'START_PICKER' };
@@ -57,7 +44,6 @@ async function openPicker(tabId) {
     return;
   } catch {
   }
-  if (!api.scripting || typeof api.scripting.executeScript !== 'function') return;
   try {
     await api.scripting.executeScript({
       target: { tabId, frameIds: [0] },

@@ -31,13 +31,10 @@
   let accessToken = 0;
   const coarsePointer = window.matchMedia('(pointer: coarse)').matches;
   const ACCESS_ORIGINS = ['*://*/*'];
-  const HOST_ACCESS_ORIGINS = ['<all_urls>', '*://*/*'];
   const access = {
     checked: false,
-    hostAccess: false,
     scriptReady: false,
     mode: '',
-    manual: false,
     busy: false
   };
 
@@ -48,16 +45,12 @@
   async function init() {
     bindEvents();
     api.storage.onChanged.addListener(onStorageChanged);
-    if (api.permissions) {
-      for (const name of ['onAdded', 'onRemoved']) {
-        const event = api.permissions[name];
-        if (event && typeof event.addListener === 'function') {
-          event.addListener(() => {
-            refreshAccess();
-          });
-        }
-      }
-    }
+    api.permissions.onAdded.addListener(() => {
+      refreshAccess();
+    });
+    api.permissions.onRemoved.addListener(() => {
+      refreshAccess();
+    });
 
     let tabs = [];
     try {
@@ -103,16 +96,11 @@
   }
 
   function isRestrictedUrl(url) {
-    let host = '';
     try {
-      host = new URL(url).hostname;
+      return new URL(url).hostname === 'addons.mozilla.org';
     } catch {
       return true;
     }
-    if (host === 'chromewebstore.google.com') return true;
-    if (host === 'chrome.google.com' && url.includes('/webstore')) return true;
-    if (host === 'addons.mozilla.org') return true;
-    return false;
   }
 
   function showUnsupported() {
@@ -252,19 +240,8 @@
   }
 
   async function checkHostAccess() {
-    if (!api.permissions || typeof api.permissions.contains !== 'function') return true;
     try {
-      const results = [];
-      for (const origin of HOST_ACCESS_ORIGINS) {
-        try {
-          results.push(await api.permissions.contains({ origins: [origin] }));
-        } catch {
-          results.push(null);
-        }
-      }
-      if (results.some((value) => value === true)) return true;
-      if (results.every((value) => value === null)) return true;
-      return false;
+      return await api.permissions.contains({ origins: ACCESS_ORIGINS });
     } catch {
       return true;
     }
@@ -281,7 +258,7 @@
   }
 
   async function injectContentScript() {
-    if (!tab || !api.scripting || typeof api.scripting.executeScript !== 'function') return false;
+    if (!tab) return false;
     try {
       await api.scripting.executeScript({
         target: { tabId: tab.id, frameIds: [0] },
@@ -310,10 +287,8 @@
     }
     if (token !== accessToken) return;
     access.checked = true;
-    access.hostAccess = hostAccess;
     access.scriptReady = scriptReady;
     access.mode = !hostAccess ? 'permission' : (!scriptReady ? 'inject' : '');
-    if (access.mode !== 'permission') access.manual = false;
     render();
   }
 
@@ -332,15 +307,9 @@
       return;
     }
 
-    els.accessTitle.textContent = access.manual
-      ? t('accessManualTitle')
-      : (access.scriptReady ? t('accessPartialTitle') : t('accessMissingTitle'));
-    els.accessText.textContent = access.manual
-      ? t('accessManualText')
-      : (access.scriptReady
-        ? t('accessPartialText')
-        : t('accessMissingText'));
-    els.accessAction.textContent = access.busy ? t('requesting') : (access.manual ? t('retryGrant') : t('allowSiteAccess'));
+    els.accessTitle.textContent = access.scriptReady ? t('accessPartialTitle') : t('accessMissingTitle');
+    els.accessText.textContent = access.scriptReady ? t('accessPartialText') : t('accessMissingText');
+    els.accessAction.textContent = access.busy ? t('requesting') : t('allowSiteAccess');
     els.accessAction.disabled = access.busy;
   }
 
@@ -358,28 +327,14 @@
     }
 
     if (access.mode !== 'permission') return;
-    if (!api.permissions || typeof api.permissions.request !== 'function') {
-      access.manual = true;
-      render();
-      return;
-    }
 
     access.busy = true;
     renderAccessNotice();
-    let timer = 0;
     try {
-      const granted = await Promise.race([
-        api.permissions.request({ origins: ACCESS_ORIGINS }),
-        new Promise((resolve) => {
-          timer = setTimeout(() => resolve(false), 15000);
-        })
-      ]);
+      const granted = await api.permissions.request({ origins: ACCESS_ORIGINS });
       if (granted) await refreshAccess();
-      else access.manual = true;
     } catch {
-      access.manual = true;
     } finally {
-      clearTimeout(timer);
       access.busy = false;
       render();
     }
