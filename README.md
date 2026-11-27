@@ -2,9 +2,9 @@
 
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="src/icons/logo-white-1024.png">
-    <source media="(prefers-color-scheme: light)" srcset="src/icons/logo-black-1024.png">
-    <img src="src/icons/logo-black-1024.png" alt="IUxx logo" width="128">
+    <source media="(prefers-color-scheme: dark)" srcset="assets/logo-white-1024.png">
+    <source media="(prefers-color-scheme: light)" srcset="assets/logo-black-1024.png">
+    <img src="assets/logo-black-1024.png" alt="IUxx logo" width="128">
   </picture>
 </p>
 
