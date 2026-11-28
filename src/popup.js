@@ -137,6 +137,7 @@
     els.content.classList.add('hidden');
     els.unsupportedText.textContent = t('unsupportedText');
     els.unsupported.classList.remove('hidden');
+    document.body.classList.add('compact');
   }
 
   function onStorageChanged(changes, area) {
