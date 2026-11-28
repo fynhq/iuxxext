@@ -19,6 +19,20 @@
     <section class="card">
       <div class="card-head">
         <div>
+          <h2 data-i18n="behaviorHeading">Behavior</h2>
+          <p class="card-desc" data-i18n="behaviorDesc">Choose how the picker behaves after a rule is created.</p>
+        </div>
+      </div>
+      <label class="check-row">
+        <input id="keep-open" type="checkbox">
+        <span data-i18n="keepPickerOpen">Keep the picker open after blocking</span>
+      </label>
+      <p id="behavior-status" class="status" role="status"></p>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <div>
           <h2 data-i18n="whitelistHeading">Exceptions</h2>
           <p class="card-desc" data-i18n="whitelistDesc">Sites on the exceptions list are never blocked. Entries also cover subdomains.</p>
         </div>
@@ -37,13 +51,83 @@
     <section class="card">
       <div class="card-head">
         <div>
-          <h2><span data-i18n="allRulesHeading">All blocking rules</span> <span id="rules-count" class="badge">0</span></h2>
-          <p class="card-desc" data-i18n="allRulesDesc">Grouped by site. Delete a rule to restore the element.</p>
+          <h2 id="rule-form-title" data-i18n="addRuleHeading">Add a rule</h2>
+          <p class="card-desc" data-i18n="addRuleDesc">Create a rule manually, or use the picker on the page.</p>
         </div>
       </div>
 
+      <form id="rule-form" class="rule-form">
+        <div class="field-row">
+          <div class="field">
+            <label for="rule-host" data-i18n="ruleHostLabel">Site</label>
+            <input id="rule-host" type="text" placeholder="example.com" data-i18n-placeholder="ruleHostPlaceholder" autocomplete="off" spellcheck="false">
+          </div>
+          <div class="field">
+            <label for="rule-scope" data-i18n="ruleScopeLabel">Scope</label>
+            <select id="rule-scope">
+              <option value="host" data-i18n="scopeHost">This host only</option>
+              <option value="domain" data-i18n="scopeDomain">Host and subdomains</option>
+              <option value="global" data-i18n="scopeGlobal">All websites</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label for="rule-selector" data-i18n="ruleSelectorLabel">CSS selector</label>
+          <input id="rule-selector" type="text" placeholder=".ad-banner" autocomplete="off" spellcheck="false">
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="rule-path" data-i18n="rulePathLabel">Path prefix (optional)</label>
+            <input id="rule-path" type="text" placeholder="/watch" autocomplete="off" spellcheck="false">
+          </div>
+          <div class="field">
+            <label for="rule-preview" data-i18n="rulePreviewLabel">Label (optional)</label>
+            <input id="rule-preview" type="text" placeholder="Promo banner" data-i18n-placeholder="rulePreviewPlaceholder" autocomplete="off">
+          </div>
+        </div>
+        <p class="field-hint" data-i18n="ruleFormHint">A path prefix limits the rule to that path and its subpaths. Leave it empty for the whole site.</p>
+        <div class="form-actions">
+          <button id="rule-submit" class="primary" type="submit" data-i18n="addRuleButton">Add rule</button>
+          <button id="rule-cancel" class="ghost" type="button" data-i18n="cancel" hidden>Cancel</button>
+        </div>
+        <p id="rule-error" class="form-error hidden"></p>
+      </form>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <div>
+          <h2><span data-i18n="allRulesHeading">All blocking rules</span> <span id="rules-count" class="badge">0</span></h2>
+          <p class="card-desc" data-i18n="allRulesDesc">Grouped by site. Disable, edit, or delete a rule to change its effect.</p>
+        </div>
+        <div class="rules-toolbar">
+          <input id="rule-search" type="search" placeholder="Search sites, selectors, or labels" data-i18n-placeholder="ruleSearchPlaceholder" autocomplete="off" aria-label="Search rules" data-i18n-aria-label="ruleSearchAria">
+          <span id="search-count" class="search-count"></span>
+        </div>
+        <p id="limit-warning" class="limit-warning hidden"></p>
+        <p id="rules-status" class="status" role="status"></p>
+      </div>
       <div id="rules-root" class="rules-root"></div>
       <p id="rules-empty" class="empty" data-i18n="rulesEmpty">No blocking rules yet</p>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <div>
+          <h2 data-i18n="backupHeading">Import and export</h2>
+          <p class="card-desc" data-i18n="backupDesc">Save your rules and exceptions to a JSON file, or restore them on another profile. Nothing is uploaded.</p>
+        </div>
+      </div>
+      <div class="backup-actions">
+        <button id="export-btn" class="primary" type="button" data-i18n="exportButton">Export JSON</button>
+        <select id="import-mode" class="select" aria-label="Import mode" data-i18n-aria-label="importModeAria">
+          <option value="merge" data-i18n="importMerge">Merge with existing</option>
+          <option value="replace" data-i18n="importReplace">Replace existing</option>
+        </select>
+        <button id="import-btn" class="file-btn" type="button" data-i18n="importButton">Import JSON</button>
+        <input id="import-file" type="file" accept="application/json,.json" hidden>
+      </div>
+      <p id="backup-status" class="status" role="status"></p>
     </section>
   </main>
 
@@ -51,6 +135,11 @@
     <span class="desktop-only"><span data-i18n="footerDesktopPrefix">In the picker, expand or shrink the range and confirm to block; press</span> <kbd>Esc</kbd> <span data-i18n="footerDesktopSuffix">to exit.</span></span>
     <span class="touch-only" data-i18n="footerTouch">After selecting an element, adjust the range and confirm to block; tap Exit at the top to cancel.</span>
   </footer>
+
+  <div id="undo-bar" class="undo-bar hidden" role="status" aria-live="polite">
+    <span id="undo-text"></span>
+    <button id="undo-btn" class="undo-btn" type="button" data-i18n="undo">Undo</button>
+  </div>
 
   <script src="shared.js"></script>
   <script src="options.js"></script>

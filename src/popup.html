@@ -45,17 +45,21 @@
       </div>
 
       <div class="pick-area">
-        <button id="pick" class="primary-btn" type="button" data-i18n="pickButton">Select an element to block</button>
+        <div class="pick-actions">
+          <button id="pick" class="primary-btn" type="button" data-i18n="pickButton">Select an element to block</button>
+          <button id="zap" class="secondary-btn" type="button" data-i18n="zapButton">Hide temporarily</button>
+        </div>
         <p id="hint" class="hint" data-i18n="pickerHint">Click an element, adjust the range, then confirm</p>
       </div>
 
       <section class="rules">
         <div class="rules-head">
-          <h2 data-i18n="rulesHeading">Blocked on this site</h2>
+          <h2 data-i18n="rulesHeading">Rules for this site</h2>
           <span id="rule-count" class="count">0</span>
         </div>
+        <p id="limit-warning" class="limit-warning hidden"></p>
         <ul id="rule-list" class="rule-list"></ul>
-        <p id="empty" class="empty" data-i18n="rulesEmptySite">No blocked elements on this site yet</p>
+        <p id="empty" class="empty" data-i18n="rulesEmptySite">No blocking rules for this site yet</p>
       </section>
     </section>
   </main>
@@ -63,6 +67,11 @@
   <footer>
     <button id="options-link" class="link-btn" type="button" data-i18n="footerOptionsLink">Exceptions and all rules</button>
   </footer>
+
+  <div id="undo-bar" class="undo-bar hidden" role="status" aria-live="polite">
+    <span id="undo-text"></span>
+    <button id="undo-btn" class="undo-btn" type="button" data-i18n="undo">Undo</button>
+  </div>
 
   <script src="shared.js"></script>
   <script src="popup.js"></script>

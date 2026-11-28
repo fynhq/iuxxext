@@ -3,7 +3,7 @@
     "message": "IUxx"
   },
   "extensionDescription": {
-    "message": "点选网页上的任意元素，调整范围后确认屏蔽，刷新后依然生效；支持网站例外列表。"
+    "message": "点选网页元素即可屏蔽，可匹配同类元素；支持按主机、域名、路径或全站保存规则，并含临时隐藏与备份。"
   },
   "actionTitle": {
     "message": "IUxx"
@@ -14,8 +14,11 @@
   "menuBlockElement": {
     "message": "屏蔽此元素（IUxx）"
   },
+  "menuZapElement": {
+    "message": "临时隐藏此元素（IUxx）"
+  },
   "brandSubtitle": {
-    "message": "元素屏蔽"
+    "message": "元素屏蔽器"
   },
   "settings": {
     "message": "设置"
@@ -24,31 +27,43 @@
     "message": "设置 · IUxx"
   },
   "optionsIntro": {
-    "message": "点选网页元素、调整范围后确认屏蔽，刷新后依然生效。"
+    "message": "在页面上或手动创建规则，再管理作用范围、路径、例外和备份。"
+  },
+  "behaviorHeading": {
+    "message": "行为"
+  },
+  "behaviorDesc": {
+    "message": "设置创建规则后选择器的行为。"
+  },
+  "keepPickerOpen": {
+    "message": "屏蔽后保持选择器打开"
+  },
+  "settingSaved": {
+    "message": "已保存。"
   },
   "unsupportedTitle": {
-    "message": "此页面不支持屏蔽"
+    "message": "此页面无法屏蔽"
   },
   "unsupportedText": {
-    "message": "浏览器内置页、扩展商店、本地文件等页面无法注入屏蔽脚本，请切换到普通网页后再试。"
+    "message": "浏览器内部页面、扩展商店、本地文件等页面不支持元素屏蔽。请打开普通网页再试。"
   },
   "siteStateEnabledNone": {
-    "message": "已启用 · 暂无屏蔽规则"
+    "message": "已启用 · 暂无规则"
   },
   "siteStateEnabledOne": {
-    "message": "已启用 · 1 条屏蔽规则"
+    "message": "已启用 · 1 条规则"
   },
   "siteStateEnabledMany": {
-    "message": "已启用 · $1 条屏蔽规则"
+    "message": "已启用 · $1 条规则"
   },
   "siteStateWhitelisted": {
-    "message": "已列入例外，此网站不屏蔽"
+    "message": "已排除，本站屏蔽已关闭。"
   },
   "siteStateWhitelistedEntry": {
-    "message": "已列入例外（$1），此网站不屏蔽"
+    "message": "已排除（$1），本站屏蔽已关闭。"
   },
   "siteToggleTitle": {
-    "message": "在此网站启用元素屏蔽"
+    "message": "在本站启用元素屏蔽"
   },
   "pickButton": {
     "message": "选择要屏蔽的元素"
@@ -56,23 +71,29 @@
   "pickButtonStarting": {
     "message": "正在启动选择器…"
   },
+  "zapButton": {
+    "message": "临时隐藏"
+  },
+  "zapButtonTitle": {
+    "message": "临时隐藏元素，刷新页面后恢复"
+  },
   "pickerHint": {
-    "message": "点选元素后可调整范围，确认后屏蔽"
+    "message": "点击元素，调整范围后确认"
   },
   "pickerHintShortcut": {
     "message": "快捷键 Ctrl+Alt+X（macOS：Ctrl+Cmd+X）"
   },
   "pickerHintWhitelisted": {
-    "message": "关闭上方开关即可恢复对此网站的屏蔽"
+    "message": "本站屏蔽已关闭，临时隐藏仍可使用。"
   },
   "rulesHeading": {
-    "message": "此网站已屏蔽"
+    "message": "本站规则"
   },
   "blockedElement": {
     "message": "已屏蔽元素"
   },
   "rulesEmptySite": {
-    "message": "还没有屏蔽这个网站的元素"
+    "message": "本站还没有屏蔽规则"
   },
   "delete": {
     "message": "删除"
@@ -81,58 +102,58 @@
     "message": "删除这条屏蔽规则"
   },
   "footerOptionsLink": {
-    "message": "例外站点与全部规则"
+    "message": "例外与全部规则"
   },
   "accessInjectTitle": {
     "message": "内容脚本未运行"
   },
   "accessInjectText": {
-    "message": "当前页面可能是在扩展安装或更新前打开的，刷新页面后即可使用。"
+    "message": "此页面可能在扩展安装或更新前就已打开。请刷新页面后再使用。"
   },
   "refreshPage": {
     "message": "刷新页面"
   },
   "accessPartialTitle": {
-    "message": "网站访问权限未完整授予"
+    "message": "站点访问权限未完全授予"
   },
   "accessMissingTitle": {
-    "message": "缺少网站访问权限"
+    "message": "缺少站点访问权限"
   },
   "accessPartialText": {
-    "message": "当前页面可临时使用，但刷新或打开其他网站后屏蔽规则可能无法自动生效。请允许访问所有网站。"
+    "message": "当前页面暂时可以屏蔽，但刷新后或其他站点上的规则可能无法自动生效。请允许访问所有站点。"
   },
   "accessMissingText": {
-    "message": "屏蔽规则需要在页面加载时运行脚本，但当前没有网站访问权限。请允许访问所有网站后重试。"
+    "message": "屏蔽需要在页面加载时运行脚本，但缺少站点访问权限。请允许访问所有站点后重试。"
   },
   "allowSiteAccess": {
-    "message": "允许访问网站"
+    "message": "允许站点访问"
   },
   "requesting": {
     "message": "正在请求…"
   },
   "toggleFailed": {
-    "message": "操作失败，请重试"
+    "message": "操作失败，请重试。"
   },
   "permissionMissing": {
-    "message": "缺少网站访问权限，请先允许访问"
+    "message": "缺少站点访问权限，请先允许访问。"
   },
   "contentScriptMissing": {
-    "message": "内容脚本未运行，请刷新页面后重试"
+    "message": "内容脚本未运行，请刷新页面后重试。"
   },
   "pickerStartFailed": {
-    "message": "无法在这个页面启动选择器，请刷新页面后重试"
+    "message": "无法在此页面启动选择器，请刷新页面后重试。"
   },
   "reloadFailed": {
-    "message": "刷新失败，请手动刷新页面"
+    "message": "刷新失败，请手动刷新页面。"
   },
   "deleteFailed": {
-    "message": "删除失败，请重试"
+    "message": "删除规则失败，请重试。"
   },
   "whitelistHeading": {
-    "message": "例外站点"
+    "message": "例外"
   },
   "whitelistDesc": {
-    "message": "例外列表中的网站不会应用任何屏蔽规则，其子域名同样生效。"
+    "message": "例外列表中的站点永远不会被屏蔽，条目同样覆盖子域名。"
   },
   "whitelistPlaceholder": {
     "message": "example.com 或 https://example.com/page"
@@ -144,13 +165,13 @@
     "message": "添加"
   },
   "invalidDomain": {
-    "message": "请输入有效的域名，例如 example.com"
+    "message": "请输入有效域名，例如 example.com"
   },
   "saveFailed": {
-    "message": "保存失败，请重试"
+    "message": "保存失败，请重试。"
   },
   "removeFailed": {
-    "message": "移除失败，请重试"
+    "message": "移除失败，请重试。"
   },
   "whitelistEmpty": {
     "message": "例外列表为空"
@@ -159,40 +180,214 @@
     "message": "移除"
   },
   "removeFromWhitelistAria": {
-    "message": "将 $1 移出例外列表"
+    "message": "从例外中移除 $1"
+  },
+  "addRuleHeading": {
+    "message": "添加规则"
+  },
+  "editRuleHeading": {
+    "message": "编辑规则"
+  },
+  "addRuleDesc": {
+    "message": "手动创建规则，或在页面上使用选择器。"
+  },
+  "ruleHostLabel": {
+    "message": "站点"
+  },
+  "ruleHostPlaceholder": {
+    "message": "example.com"
+  },
+  "ruleScopeLabel": {
+    "message": "范围"
+  },
+  "ruleSelectorLabel": {
+    "message": "CSS 选择器"
+  },
+  "rulePathLabel": {
+    "message": "路径前缀（可选）"
+  },
+  "rulePreviewLabel": {
+    "message": "备注（可选）"
+  },
+  "rulePreviewPlaceholder": {
+    "message": "推广横幅"
+  },
+  "ruleFormHint": {
+    "message": "路径前缀会把规则限制在该路径及其子路径；留空则对整个站点生效。"
+  },
+  "addRuleButton": {
+    "message": "添加规则"
+  },
+  "saveRuleButton": {
+    "message": "保存修改"
+  },
+  "cancel": {
+    "message": "取消"
+  },
+  "edit": {
+    "message": "编辑"
+  },
+  "editRuleAria": {
+    "message": "编辑这条规则"
+  },
+  "copySelector": {
+    "message": "复制"
+  },
+  "copyDone": {
+    "message": "选择器已复制。"
+  },
+  "copyFailed": {
+    "message": "复制选择器失败。"
+  },
+  "ruleSelectorRequired": {
+    "message": "请输入 CSS 选择器。"
+  },
+  "ruleSelectorInvalid": {
+    "message": "CSS 选择器无效。"
+  },
+  "ruleSelectorUnsafe": {
+    "message": "该选择器会隐藏整个页面，已拒绝。"
+  },
+  "ruleDuplicate": {
+    "message": "已存在完全相同的规则。"
+  },
+  "ruleHostWhitelisted": {
+    "message": "该站点在例外列表中，请先移除。"
+  },
+  "ruleSaved": {
+    "message": "规则已保存。"
+  },
+  "ruleEnabledTitle": {
+    "message": "启用或停用这条规则"
+  },
+  "ruleToggleFailed": {
+    "message": "修改规则失败，请重试。"
+  },
+  "ruleDisabled": {
+    "message": "已停用"
+  },
+  "pathBadgeTitle": {
+    "message": "这条规则仅对这个路径前缀生效"
+  },
+  "scopeHost": {
+    "message": "仅本主机"
+  },
+  "scopeDomain": {
+    "message": "本主机及子域名"
+  },
+  "scopeGlobal": {
+    "message": "所有网站"
+  },
+  "allSites": {
+    "message": "所有网站"
+  },
+  "rulesNoMatch": {
+    "message": "没有匹配的规则。"
+  },
+  "searchCount": {
+    "message": "显示 $1 / $2 条"
+  },
+  "ruleSearchPlaceholder": {
+    "message": "搜索站点、选择器或备注"
+  },
+  "ruleSearchAria": {
+    "message": "搜索规则"
+  },
+  "ruleDeleted": {
+    "message": "规则已删除。"
+  },
+  "groupLimit": {
+    "message": "接近上限：本站已有 $1/$2 条规则"
+  },
+  "ruleLimitWarning": {
+    "message": "本站已有 $1/$2 条规则。可用“匹配相似元素”减少规则数量。"
+  },
+  "ruleLimitTotalWarning": {
+    "message": "当前共有 $1/$2 条规则。继续添加前建议先导出备份。"
+  },
+  "ruleLimitTotal": {
+    "message": "规则总数已达上限，请先删除一些规则。"
   },
   "allRulesHeading": {
     "message": "全部屏蔽规则"
   },
   "allRulesDesc": {
-    "message": "按站点分组。删除规则后元素会立即恢复。"
+    "message": "按站点分组。可停用、编辑或删除规则。"
   },
   "rulesEmpty": {
-    "message": "还没有任何屏蔽规则"
+    "message": "还没有屏蔽规则"
   },
   "ruleCountOne": {
-    "message": "1 条"
+    "message": "1 条规则"
   },
   "ruleCountMany": {
-    "message": "$1 条"
+    "message": "$1 条规则"
+  },
+  "backupHeading": {
+    "message": "导入与导出"
+  },
+  "backupDesc": {
+    "message": "把规则和例外保存为 JSON 文件，或恢复到另一个配置文件。不会上传任何内容。"
+  },
+  "exportButton": {
+    "message": "导出 JSON"
+  },
+  "importButton": {
+    "message": "导入 JSON"
+  },
+  "importModeAria": {
+    "message": "导入方式"
+  },
+  "importMerge": {
+    "message": "与现有规则合并"
+  },
+  "importReplace": {
+    "message": "替换现有规则"
+  },
+  "importReplaceConfirm": {
+    "message": "用此文件替换当前全部规则和例外？此操作无法撤销。"
+  },
+  "importing": {
+    "message": "正在导入…"
+  },
+  "importDone": {
+    "message": "导入完成：新增 $1 条，跳过 $2 条，共 $3 条规则。"
+  },
+  "importFailed": {
+    "message": "导入失败，文件未变更。"
+  },
+  "importInvalid": {
+    "message": "该文件不是有效的 IUxx 备份。"
+  },
+  "importNothing": {
+    "message": "文件中没有可用的规则或例外。"
+  },
+  "importTooLarge": {
+    "message": "文件过大（最大 2 MB）。"
+  },
+  "exportDone": {
+    "message": "已导出 $1 条规则。"
+  },
+  "exportFailed": {
+    "message": "导出失败，请重试。"
   },
   "footerDesktopPrefix": {
-    "message": "使用元素选择器时可扩大/缩小范围，确认后才屏蔽；按"
+    "message": "在选择器中扩大或缩小范围后确认屏蔽；按"
   },
   "footerDesktopSuffix": {
     "message": "退出。"
   },
   "footerTouch": {
-    "message": "选择元素后可调整范围，确认后才屏蔽；点顶部“退出”可取消。"
+    "message": "选中元素后调整范围并确认屏蔽；点按顶部的“退出”可取消。"
   },
   "notifyWhitelistedSite": {
-    "message": "此网站已列入例外，不会屏蔽元素"
+    "message": "本站已排除，不会屏蔽任何元素。"
   },
   "notifyWhitelistEnabled": {
-    "message": "此网站已加入例外列表，屏蔽已停用"
+    "message": "本站已加入例外，屏蔽已关闭。"
   },
   "blockSuccess": {
-    "message": "已屏蔽，刷新页面后仍生效"
+    "message": "已屏蔽，刷新后仍然生效。"
   },
   "undo": {
     "message": "撤销"
@@ -201,22 +396,28 @@
     "message": "已撤销"
   },
   "undoFailed": {
-    "message": "撤销失败，请重试"
+    "message": "撤销失败，请重试。"
   },
   "pickerHudTap": {
-    "message": "轻点要屏蔽的元素"
+    "message": "点按要屏蔽的元素"
   },
   "pickerHudClick": {
     "message": "点击要屏蔽的元素"
   },
   "pickerHudReselect": {
-    "message": "轻点其他元素可重选"
+    "message": "点按另一个元素可重新选择"
+  },
+  "pickerHudZap": {
+    "message": "点击临时隐藏 · 也可按 Del · Esc 退出"
+  },
+  "pickerHudZapTap": {
+    "message": "点按临时隐藏 · Esc 退出"
   },
   "exit": {
     "message": "退出"
   },
   "selectionRange": {
-    "message": "已选范围"
+    "message": "选择范围"
   },
   "selectionDepth": {
     "message": "第 $1 层"
@@ -225,10 +426,10 @@
     "message": "屏蔽范围"
   },
   "shrinkRange": {
-    "message": "缩小范围"
+    "message": "缩小"
   },
   "growRange": {
-    "message": "扩大范围"
+    "message": "扩大"
   },
   "reselect": {
     "message": "重选"
@@ -243,36 +444,105 @@
     "message": "扩大到父级范围（↑）"
   },
   "blockTitle": {
-    "message": "确认屏蔽（Enter）"
+    "message": "屏蔽此范围（Enter）"
   },
   "pickerHintBar": {
     "message": "↑ 扩大 · ↓ 缩小 · Enter 屏蔽 · Esc 退出"
   },
   "outermostRange": {
-    "message": "已经是最外层范围"
+    "message": "已经是最外层范围。"
   },
   "elementGone": {
-    "message": "所选元素已不在页面上，请重新选择"
+    "message": "所选元素已不在页面上，请重新选择。"
   },
   "selectorFailed": {
-    "message": "无法为这个范围生成选择器，请调整范围"
+    "message": "无法为此范围生成选择器，请调整范围或编辑选择器。"
   },
   "alreadyBlocked": {
-    "message": "这个范围已在屏蔽列表中"
+    "message": "该元素已被屏蔽。"
+  },
+  "alreadyBlockedDisabled": {
+    "message": "已存在相同规则但处于停用状态，可在设置中启用。"
   },
   "blocking": {
-    "message": "屏蔽中…"
+    "message": "正在屏蔽…"
   },
   "extensionUpdated": {
-    "message": "扩展已更新，请刷新页面后重试"
+    "message": "扩展已更新，请刷新页面后重试。"
   },
   "siteWhitelisted": {
-    "message": "此网站已列入例外。"
+    "message": "本站已排除。"
   },
   "ruleLimit": {
-    "message": "此网站的屏蔽规则已达上限"
+    "message": "本站已达到规则上限。"
   },
   "noSelector": {
-    "message": "无法为这个范围生成选择器"
+    "message": "无法为此范围生成选择器"
+  },
+  "selectorInputAria": {
+    "message": "这条规则的 CSS 选择器"
+  },
+  "selectorInvalid": {
+    "message": "选择器无效"
+  },
+  "selectorUnsafe": {
+    "message": "该选择器会隐藏页面或选择器本身"
+  },
+  "selectorRequired": {
+    "message": "请输入有效的选择器"
+  },
+  "selectorNoMatch": {
+    "message": "没有元素匹配"
+  },
+  "matchCount": {
+    "message": "$1 个元素匹配"
+  },
+  "matchCountLarge": {
+    "message": "$1 个元素匹配，请查看高亮"
+  },
+  "matchSimilar": {
+    "message": "匹配相似元素（$1）"
+  },
+  "matchSingle": {
+    "message": "仅匹配此元素"
+  },
+  "useAutoSelector": {
+    "message": "使用自动选择器"
+  },
+  "shadowTag": {
+    "message": "Shadow DOM"
+  },
+  "shadowWarning": {
+    "message": "该元素位于 Shadow DOM 内，规则只能屏蔽它的宿主元素。"
+  },
+  "globalScopeWarning": {
+    "message": "这条规则会在所有网站上生效。"
+  },
+  "applyScope": {
+    "message": "应用范围"
+  },
+  "onlyThisPath": {
+    "message": "仅当前路径"
+  },
+  "pathScopeTitle": {
+    "message": "仅对 $1 及其子路径生效"
+  },
+  "preview": {
+    "message": "预览"
+  },
+  "previewOff": {
+    "message": "退出预览"
+  },
+  "zapSuccess": {
+    "message": "已临时隐藏，刷新页面后恢复。"
+  },
+  "zapUndone": {
+    "message": "元素已恢复。"
+  },
+  "zapCount": {
+    "message": "已隐藏 $1 个"
+  },
+  "zapExitHint": {
+    "message": "$1 个元素会保持隐藏，刷新页面后恢复。"
   }
 }

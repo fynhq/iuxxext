@@ -3,7 +3,7 @@
     "message": "IUxx"
   },
   "extensionDescription": {
-    "message": "Click any element on a page, adjust the range, and block it. Rules survive reloads, plus a per-site exception list."
+    "message": "Hide any element, match similar ones, and keep rules per host, domain, path, or site. Includes temporary hiding and backups."
   },
   "actionTitle": {
     "message": "IUxx"
@@ -13,6 +13,9 @@
   },
   "menuBlockElement": {
     "message": "Block this element (IUxx)"
+  },
+  "menuZapElement": {
+    "message": "Temporarily hide this element (IUxx)"
   },
   "brandSubtitle": {
     "message": "Element Blocker"
@@ -24,7 +27,19 @@
     "message": "Settings · IUxx"
   },
   "optionsIntro": {
-    "message": "Pick an element, adjust the range, and block it. Rules stay in effect after reloads."
+    "message": "Create rules from a page or manually, then manage scopes, paths, exceptions, and backups."
+  },
+  "behaviorHeading": {
+    "message": "Behavior"
+  },
+  "behaviorDesc": {
+    "message": "Choose how the picker behaves after a rule is created."
+  },
+  "keepPickerOpen": {
+    "message": "Keep the picker open after blocking"
+  },
+  "settingSaved": {
+    "message": "Saved."
   },
   "unsupportedTitle": {
     "message": "Blocking is not available on this page"
@@ -56,6 +71,12 @@
   "pickButtonStarting": {
     "message": "Starting picker…"
   },
+  "zapButton": {
+    "message": "Hide temporarily"
+  },
+  "zapButtonTitle": {
+    "message": "Hide elements until the page is reloaded"
+  },
   "pickerHint": {
     "message": "Click an element, adjust the range, then confirm"
   },
@@ -63,16 +84,16 @@
     "message": "Shortcut Ctrl+Alt+X (macOS: Ctrl+Cmd+X)"
   },
   "pickerHintWhitelisted": {
-    "message": "Turn the switch above back on to re-enable blocking"
+    "message": "Blocking is off for this site. Temporary hiding still works."
   },
   "rulesHeading": {
-    "message": "Blocked on this site"
+    "message": "Rules for this site"
   },
   "blockedElement": {
     "message": "Blocked element"
   },
   "rulesEmptySite": {
-    "message": "No blocked elements on this site yet"
+    "message": "No blocking rules for this site yet"
   },
   "delete": {
     "message": "Delete"
@@ -161,11 +182,137 @@
   "removeFromWhitelistAria": {
     "message": "Remove $1 from the exceptions"
   },
+  "addRuleHeading": {
+    "message": "Add a rule"
+  },
+  "editRuleHeading": {
+    "message": "Edit rule"
+  },
+  "addRuleDesc": {
+    "message": "Create a rule manually, or use the picker on the page."
+  },
+  "ruleHostLabel": {
+    "message": "Site"
+  },
+  "ruleHostPlaceholder": {
+    "message": "example.com"
+  },
+  "ruleScopeLabel": {
+    "message": "Scope"
+  },
+  "ruleSelectorLabel": {
+    "message": "CSS selector"
+  },
+  "rulePathLabel": {
+    "message": "Path prefix (optional)"
+  },
+  "rulePreviewLabel": {
+    "message": "Label (optional)"
+  },
+  "rulePreviewPlaceholder": {
+    "message": "Promo banner"
+  },
+  "ruleFormHint": {
+    "message": "A path prefix limits the rule to that path and its subpaths. Leave it empty for the whole site."
+  },
+  "addRuleButton": {
+    "message": "Add rule"
+  },
+  "saveRuleButton": {
+    "message": "Save changes"
+  },
+  "cancel": {
+    "message": "Cancel"
+  },
+  "edit": {
+    "message": "Edit"
+  },
+  "editRuleAria": {
+    "message": "Edit this rule"
+  },
+  "copySelector": {
+    "message": "Copy"
+  },
+  "copyDone": {
+    "message": "Selector copied."
+  },
+  "copyFailed": {
+    "message": "Could not copy the selector."
+  },
+  "ruleSelectorRequired": {
+    "message": "Enter a CSS selector."
+  },
+  "ruleSelectorInvalid": {
+    "message": "This CSS selector is not valid."
+  },
+  "ruleSelectorUnsafe": {
+    "message": "This selector would hide the whole page and was rejected."
+  },
+  "ruleDuplicate": {
+    "message": "An identical rule already exists."
+  },
+  "ruleHostWhitelisted": {
+    "message": "This site is on the exceptions list. Remove it first."
+  },
+  "ruleSaved": {
+    "message": "Rule saved."
+  },
+  "ruleEnabledTitle": {
+    "message": "Enable or disable this rule"
+  },
+  "ruleToggleFailed": {
+    "message": "Could not change the rule. Try again."
+  },
+  "ruleDisabled": {
+    "message": "Disabled"
+  },
+  "pathBadgeTitle": {
+    "message": "This rule only applies to this path prefix"
+  },
+  "scopeHost": {
+    "message": "This host only"
+  },
+  "scopeDomain": {
+    "message": "Host and subdomains"
+  },
+  "scopeGlobal": {
+    "message": "All websites"
+  },
+  "allSites": {
+    "message": "All websites"
+  },
+  "rulesNoMatch": {
+    "message": "No rules match your search."
+  },
+  "searchCount": {
+    "message": "$1 of $2 rules"
+  },
+  "ruleSearchPlaceholder": {
+    "message": "Search sites, selectors, or labels"
+  },
+  "ruleSearchAria": {
+    "message": "Search rules"
+  },
+  "ruleDeleted": {
+    "message": "Rule deleted."
+  },
+  "groupLimit": {
+    "message": "Approaching the limit: $1 of $2 rules for this site"
+  },
+  "ruleLimitWarning": {
+    "message": "This site has $1 of $2 rules. Rules that match similar elements can reduce the count."
+  },
+  "ruleLimitTotalWarning": {
+    "message": "You have $1 of $2 rules in total. Export a backup before adding more."
+  },
+  "ruleLimitTotal": {
+    "message": "The total rule limit has been reached. Delete some rules first."
+  },
   "allRulesHeading": {
     "message": "All blocking rules"
   },
   "allRulesDesc": {
-    "message": "Grouped by site. Delete a rule to restore the element."
+    "message": "Grouped by site. Disable, edit, or delete a rule to change its effect."
   },
   "rulesEmpty": {
     "message": "No blocking rules yet"
@@ -175,6 +322,54 @@
   },
   "ruleCountMany": {
     "message": "$1 rules"
+  },
+  "backupHeading": {
+    "message": "Import and export"
+  },
+  "backupDesc": {
+    "message": "Save your rules and exceptions to a JSON file, or restore them on another profile. Nothing is uploaded."
+  },
+  "exportButton": {
+    "message": "Export JSON"
+  },
+  "importButton": {
+    "message": "Import JSON"
+  },
+  "importModeAria": {
+    "message": "Import mode"
+  },
+  "importMerge": {
+    "message": "Merge with existing"
+  },
+  "importReplace": {
+    "message": "Replace existing"
+  },
+  "importReplaceConfirm": {
+    "message": "Replace all current rules and exceptions with this file? This cannot be undone."
+  },
+  "importing": {
+    "message": "Importing…"
+  },
+  "importDone": {
+    "message": "Imported: $1 added, $2 skipped, $3 total rules."
+  },
+  "importFailed": {
+    "message": "Import failed. The file was not changed."
+  },
+  "importInvalid": {
+    "message": "This file does not look like an IUxx backup."
+  },
+  "importNothing": {
+    "message": "The file contains no usable rules or exceptions."
+  },
+  "importTooLarge": {
+    "message": "The file is too large (max 2 MB)."
+  },
+  "exportDone": {
+    "message": "Exported $1 rules."
+  },
+  "exportFailed": {
+    "message": "Export failed. Try again."
   },
   "footerDesktopPrefix": {
     "message": "In the picker, expand or shrink the range and confirm to block; press"
@@ -211,6 +406,12 @@
   },
   "pickerHudReselect": {
     "message": "Tap another element to reselect"
+  },
+  "pickerHudZap": {
+    "message": "Click to hide temporarily · Del also works · Esc exits"
+  },
+  "pickerHudZapTap": {
+    "message": "Tap to hide temporarily · Esc exits"
   },
   "exit": {
     "message": "Exit"
@@ -255,10 +456,13 @@
     "message": "The selected element is no longer on the page. Select it again."
   },
   "selectorFailed": {
-    "message": "A selector cannot be generated for this range. Adjust the range."
+    "message": "A selector cannot be generated for this range. Adjust the range or edit the selector."
   },
   "alreadyBlocked": {
-    "message": "This range is already blocked."
+    "message": "This element is already blocked."
+  },
+  "alreadyBlockedDisabled": {
+    "message": "An identical rule exists but is disabled. Enable it in Settings."
   },
   "blocking": {
     "message": "Blocking…"
@@ -274,5 +478,71 @@
   },
   "noSelector": {
     "message": "No selector can be generated for this range"
+  },
+  "selectorInputAria": {
+    "message": "CSS selector for this rule"
+  },
+  "selectorInvalid": {
+    "message": "Invalid selector"
+  },
+  "selectorUnsafe": {
+    "message": "This selector would hide the page or the picker"
+  },
+  "selectorRequired": {
+    "message": "Enter a valid selector"
+  },
+  "selectorNoMatch": {
+    "message": "No elements match"
+  },
+  "matchCount": {
+    "message": "$1 elements match"
+  },
+  "matchCountLarge": {
+    "message": "$1 elements match — check the highlights"
+  },
+  "matchSimilar": {
+    "message": "Match similar elements ($1)"
+  },
+  "matchSingle": {
+    "message": "Only this element"
+  },
+  "useAutoSelector": {
+    "message": "Use automatic selector"
+  },
+  "shadowTag": {
+    "message": "Shadow DOM"
+  },
+  "shadowWarning": {
+    "message": "This element is inside shadow DOM. The rule can only hide its shadow host."
+  },
+  "globalScopeWarning": {
+    "message": "This rule will apply to every website."
+  },
+  "applyScope": {
+    "message": "Apply to"
+  },
+  "onlyThisPath": {
+    "message": "This path only"
+  },
+  "pathScopeTitle": {
+    "message": "Limit to $1 and its subpaths"
+  },
+  "preview": {
+    "message": "Preview"
+  },
+  "previewOff": {
+    "message": "Stop preview"
+  },
+  "zapSuccess": {
+    "message": "Element hidden temporarily. Reload the page to restore."
+  },
+  "zapUndone": {
+    "message": "Element restored."
+  },
+  "zapCount": {
+    "message": "$1 hidden"
+  },
+  "zapExitHint": {
+    "message": "$1 elements stay hidden until this page is reloaded."
   }
 }

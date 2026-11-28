@@ -1,7 +1,7 @@
 (function () {
   'use strict';
 
-  const { api, t } = IUXX;
+  const { api, t, readStore, rulesForHost, isWhitelisted, matchingWhitelist } = IUXX;
 
   const els = {
     unsupported: document.getElementById('unsupported'),
@@ -11,24 +11,37 @@
     state: document.getElementById('site-state'),
     toggle: document.getElementById('site-toggle'),
     pick: document.getElementById('pick'),
+    zap: document.getElementById('zap'),
     hint: document.getElementById('hint'),
     list: document.getElementById('rule-list'),
     empty: document.getElementById('empty'),
     count: document.getElementById('rule-count'),
+    limitWarning: document.getElementById('limit-warning'),
     accessNotice: document.getElementById('access-notice'),
     accessTitle: document.getElementById('access-title'),
     accessText: document.getElementById('access-text'),
     accessAction: document.getElementById('access-action'),
     options: document.getElementById('open-options'),
-    optionsLink: document.getElementById('options-link')
+    optionsLink: document.getElementById('options-link'),
+    undoBar: document.getElementById('undo-bar'),
+    undoText: document.getElementById('undo-text'),
+    undoBtn: document.getElementById('undo-btn')
   };
 
   let tab = null;
   let hostname = '';
   let ready = false;
-  let state = { rules: [], whitelisted: false, whitelistEntry: '' };
+  let state = {
+    rules: [],
+    whitelisted: false,
+    whitelistEntry: '',
+    anchorRules: 0,
+    totalRules: 0
+  };
   let hintTimer = 0;
   let accessToken = 0;
+  let lastDeleted = null;
+  let undoTimer = 0;
   const coarsePointer = window.matchMedia('(pointer: coarse)').matches;
   const ACCESS_ORIGINS = ['*://*/*'];
   const access = {
@@ -39,6 +52,9 @@
   };
 
   IUXX.applyI18n();
+  els.zap.title = t('zapButtonTitle');
+  els.zap.setAttribute('aria-label', t('zapButtonTitle'));
+  els.undoBtn.textContent = t('undo');
 
   init();
 
@@ -80,11 +96,12 @@
 
   function bindEvents() {
     els.toggle.addEventListener('change', onToggle);
-    els.pick.addEventListener('click', onPick);
-    els.list.addEventListener('click', onRuleClick);
+    els.pick.addEventListener('click', () => onStartPicker('block'));
+    els.zap.addEventListener('click', () => onStartPicker('zap'));
     els.accessAction.addEventListener('click', onAccessAction);
     els.options.addEventListener('click', openOptions);
     els.optionsLink.addEventListener('click', openOptions);
+    els.undoBtn.addEventListener('click', onUndoDelete);
   }
 
   function openOptions() {
@@ -111,16 +128,33 @@
 
   function onStorageChanged(changes, area) {
     if (area !== 'local' || !ready) return;
-    if (!(IUXX.RULES_KEY in changes) && !(IUXX.WHITELIST_KEY in changes)) return;
+    if (!(IUXX.RULES_KEY in changes) &&
+        !(IUXX.LEGACY_RULES_KEY in changes) &&
+        !(IUXX.WHITELIST_KEY in changes)) {
+      return;
+    }
     loadState().then(render);
   }
 
   async function loadState() {
     try {
-      const store = await IUXX.readStore();
-      state = IUXX.stateForHost(store, hostname);
+      const store = await readStore();
+      const related = rulesForHost(store.rules, hostname);
+      state = {
+        rules: related,
+        whitelisted: isWhitelisted(hostname, store.whitelist),
+        whitelistEntry: matchingWhitelist(hostname, store.whitelist),
+        anchorRules: store.rules.filter((rule) => rule.scope !== 'global' && rule.host === hostname).length,
+        totalRules: store.rules.length
+      };
     } catch {
-      state = { rules: [], whitelisted: false, whitelistEntry: '' };
+      state = {
+        rules: [],
+        whitelisted: false,
+        whitelistEntry: '',
+        anchorRules: 0,
+        totalRules: 0
+      };
     }
   }
 
@@ -134,6 +168,7 @@
     els.count.textContent = String(rules.length);
     els.empty.classList.toggle('hidden', rules.length > 0);
     els.pick.disabled = state.whitelisted || !access.scriptReady;
+    els.zap.disabled = !access.scriptReady;
 
     if (state.whitelisted) {
       els.state.textContent = state.whitelistEntry
@@ -156,41 +191,163 @@
           : `${t('pickerHint')} · ${t('pickerHintShortcut')}`);
     }
 
+    renderLimitWarning();
     els.list.textContent = '';
     for (const rule of rules) {
-      const item = document.createElement('li');
-      item.className = 'rule';
-
-      const text = document.createElement('div');
-      text.className = 'rule-text';
-
-      const preview = document.createElement('div');
-      preview.className = 'rule-preview';
-      preview.textContent = rule.preview || t('blockedElement');
-      preview.title = rule.preview || '';
-
-      const selector = document.createElement('div');
-      selector.className = 'rule-selector';
-      selector.textContent = rule.selector;
-      selector.title = rule.selector;
-
-      text.append(preview, selector);
-
-      const del = document.createElement('button');
-      del.type = 'button';
-      del.className = 'rule-del';
-      del.textContent = t('delete');
-      del.setAttribute('aria-label', t('deleteRuleAria'));
-      if (rule.id) {
-        del.dataset.ruleId = rule.id;
-      } else {
-        del.disabled = true;
-      }
-
-      item.append(text, del);
-      els.list.appendChild(item);
+      els.list.appendChild(buildRuleRow(rule));
     }
     renderAccessNotice();
+  }
+
+  function renderLimitWarning() {
+    const perAnchorLimit = IUXX.MAX_RULES_PER_ANCHOR;
+    const totalLimit = IUXX.MAX_RULES_TOTAL;
+    let message = '';
+    if (state.anchorRules >= Math.floor(perAnchorLimit * 0.8)) {
+      message = t('ruleLimitWarning', [String(state.anchorRules), String(perAnchorLimit)]);
+    } else if (state.totalRules >= Math.floor(totalLimit * 0.8)) {
+      message = t('ruleLimitTotalWarning', [String(state.totalRules), String(totalLimit)]);
+    }
+    els.limitWarning.textContent = message;
+    els.limitWarning.classList.toggle('hidden', !message);
+  }
+
+  function scopeLabel(rule) {
+    if (rule.scope === 'global') return t('scopeGlobal');
+    if (rule.scope === 'domain') return t('scopeDomain');
+    return t('scopeHost');
+  }
+
+  function buildRuleRow(rule) {
+    const item = document.createElement('li');
+    item.className = 'rule' + (rule.enabled === false ? ' off' : '');
+
+    const toggleLabel = document.createElement('label');
+    toggleLabel.className = 'rule-toggle';
+    toggleLabel.title = t('ruleEnabledTitle');
+    const toggle = document.createElement('input');
+    toggle.type = 'checkbox';
+    toggle.checked = rule.enabled !== false;
+    toggle.setAttribute('aria-label', t('ruleEnabledTitle'));
+    toggle.addEventListener('change', () => onRuleToggle(rule, toggle));
+    toggleLabel.appendChild(toggle);
+
+    const text = document.createElement('div');
+    text.className = 'rule-text';
+
+    const preview = document.createElement('div');
+    preview.className = 'rule-preview';
+    preview.textContent = rule.preview || t('blockedElement');
+    preview.title = rule.preview || '';
+
+    const selector = document.createElement('div');
+    selector.className = 'rule-selector';
+    selector.textContent = rule.selector;
+    selector.title = rule.selector;
+
+    const meta = document.createElement('div');
+    meta.className = 'rule-meta';
+    const scope = document.createElement('span');
+    scope.className = 'rule-badge';
+    scope.textContent = scopeLabel(rule);
+    meta.appendChild(scope);
+    if (rule.path) {
+      const path = document.createElement('span');
+      path.className = 'rule-badge path';
+      path.textContent = rule.path;
+      path.title = t('pathBadgeTitle');
+      meta.appendChild(path);
+    }
+    if (rule.enabled === false) {
+      const disabled = document.createElement('span');
+      disabled.className = 'rule-badge disabled';
+      disabled.textContent = t('ruleDisabled');
+      meta.appendChild(disabled);
+    }
+
+    text.append(preview, selector, meta);
+
+    const actions = document.createElement('div');
+    actions.className = 'rule-actions';
+    const del = document.createElement('button');
+    del.type = 'button';
+    del.className = 'rule-del';
+    del.textContent = t('delete');
+    del.setAttribute('aria-label', t('deleteRuleAria'));
+    del.addEventListener('click', () => onDeleteRule(rule, del));
+    actions.appendChild(del);
+
+    item.append(toggleLabel, text, actions);
+    return item;
+  }
+
+  async function onRuleToggle(rule, checkbox) {
+    if (!rule.id) return;
+    checkbox.disabled = true;
+    try {
+      const result = await api.runtime.sendMessage({
+        type: 'SET_RULE_ENABLED',
+        id: rule.id,
+        enabled: checkbox.checked
+      });
+      if (!result || !result.ok) throw new Error('failed');
+      rule.enabled = checkbox.checked;
+      render();
+    } catch {
+      checkbox.checked = !checkbox.checked;
+      checkbox.disabled = false;
+      flash(t('ruleToggleFailed'));
+    }
+  }
+
+  async function onDeleteRule(rule, button) {
+    if (!rule.id) return;
+    button.disabled = true;
+    try {
+      const result = await api.runtime.sendMessage({ type: 'REMOVE_RULE', id: rule.id });
+      if (!result || !result.ok) throw new Error('failed');
+      lastDeleted = result.removed || rule;
+      state.rules = state.rules.filter((item) => item.id !== rule.id);
+      state.anchorRules = Math.max(0, state.anchorRules - 1);
+      state.totalRules = Math.max(0, state.totalRules - 1);
+      render();
+      showUndo(t('ruleDeleted'));
+    } catch {
+      button.disabled = false;
+      flash(t('deleteFailed'));
+    }
+  }
+
+  function showUndo(text) {
+    clearTimeout(undoTimer);
+    els.undoText.textContent = text;
+    els.undoBtn.disabled = false;
+    els.undoBtn.textContent = t('undo');
+    els.undoBar.classList.remove('hidden');
+    undoTimer = setTimeout(hideUndo, 8000);
+  }
+
+  function hideUndo() {
+    clearTimeout(undoTimer);
+    undoTimer = 0;
+    lastDeleted = null;
+    els.undoBar.classList.add('hidden');
+  }
+
+  async function onUndoDelete() {
+    if (!lastDeleted) return;
+    const rule = lastDeleted;
+    els.undoBtn.disabled = true;
+    try {
+      const result = await api.runtime.sendMessage({ type: 'RESTORE_RULE', rule });
+      if (!result || !result.ok) throw new Error('failed');
+      hideUndo();
+      await loadState();
+      render();
+    } catch {
+      els.undoBtn.disabled = false;
+      els.undoText.textContent = t('undoFailed');
+    }
   }
 
   async function onToggle() {
@@ -216,18 +373,23 @@
     }
   }
 
-  async function onPick() {
+  async function onStartPicker(mode) {
     if (!ready || !tab) return;
-    const label = els.pick.textContent;
-    els.pick.disabled = true;
-    els.pick.textContent = t('pickButtonStarting');
+    const button = mode === 'zap' ? els.zap : els.pick;
+    const label = button.textContent;
+    button.disabled = true;
+    button.textContent = t('pickButtonStarting');
     try {
       const ok = await ensureContentScript();
       if (!ok) throw new Error('content script unavailable');
-      await api.tabs.sendMessage(tab.id, { type: 'START_PICKER' });
+      await api.tabs.sendMessage(tab.id, {
+        type: 'START_PICKER',
+        mode,
+        source: 'popup'
+      });
       window.close();
     } catch {
-      els.pick.textContent = label;
+      button.textContent = label;
       await refreshAccess();
       if (access.mode === 'permission') {
         flash(t('permissionMissing'));
@@ -332,29 +494,17 @@
     renderAccessNotice();
     try {
       const granted = await api.permissions.request({ origins: ACCESS_ORIGINS });
-      if (granted) await refreshAccess();
+      if (granted) {
+        await refreshAccess();
+        try {
+          await api.tabs.sendMessage(tab.id, { type: 'RESYNC' });
+        } catch {
+        }
+      }
     } catch {
     } finally {
       access.busy = false;
       render();
-    }
-  }
-
-  async function onRuleClick(event) {
-    const button = event.target && event.target.closest
-      ? event.target.closest('button[data-rule-id]')
-      : null;
-    if (!button || !button.dataset.ruleId) return;
-    const id = button.dataset.ruleId;
-    button.disabled = true;
-    try {
-      const result = await api.runtime.sendMessage({ type: 'REMOVE_RULE', hostname, id });
-      if (!result || !result.ok) throw new Error('failed');
-      state.rules = state.rules.filter((rule) => rule.id !== id);
-      render();
-    } catch {
-      button.disabled = false;
-      flash(t('deleteFailed'));
     }
   }
 
