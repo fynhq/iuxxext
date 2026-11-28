@@ -1291,6 +1291,7 @@
         panelSelector.value = '';
       }
       refreshPanel();
+      schedulePaint();
     }
 
     function showMessage(text) {

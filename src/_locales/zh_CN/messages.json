@@ -24,16 +24,13 @@
     "message": "设置"
   },
   "optionsPageTitle": {
-    "message": "设置 · IUxx"
+    "message": "IUxx 设置"
   },
   "optionsIntro": {
-    "message": "在页面上或手动创建规则，再管理作用范围、路径、例外和备份。"
+    "message": "管理规则、例外与备份。"
   },
   "behaviorHeading": {
     "message": "行为"
-  },
-  "behaviorDesc": {
-    "message": "设置创建规则后选择器的行为。"
   },
   "keepPickerOpen": {
     "message": "屏蔽后保持选择器打开"
@@ -152,20 +149,17 @@
   "whitelistHeading": {
     "message": "例外"
   },
-  "whitelistDesc": {
-    "message": "例外列表中的站点永远不会被屏蔽，条目同样覆盖子域名。"
-  },
   "whitelistPlaceholder": {
-    "message": "example.com 或 https://example.com/page"
+    "message": "example.com"
   },
   "whitelistInputAria": {
-    "message": "要加入例外列表的域名"
+    "message": "要加入例外的域名"
   },
   "add": {
     "message": "添加"
   },
   "invalidDomain": {
-    "message": "请输入有效域名，例如 example.com"
+    "message": "请输入有效域名。"
   },
   "saveFailed": {
     "message": "保存失败，请重试。"
@@ -174,7 +168,7 @@
     "message": "移除失败，请重试。"
   },
   "whitelistEmpty": {
-    "message": "例外列表为空"
+    "message": "暂无例外。"
   },
   "remove": {
     "message": "移除"
@@ -188,11 +182,8 @@
   "editRuleHeading": {
     "message": "编辑规则"
   },
-  "addRuleDesc": {
-    "message": "手动创建规则，或在页面上使用选择器。"
-  },
   "ruleHostLabel": {
-    "message": "站点"
+    "message": "网站"
   },
   "ruleHostPlaceholder": {
     "message": "example.com"
@@ -201,25 +192,25 @@
     "message": "范围"
   },
   "ruleSelectorLabel": {
-    "message": "CSS 选择器"
+    "message": "选择器"
   },
   "rulePathLabel": {
-    "message": "路径前缀（可选）"
+    "message": "路径前缀"
   },
   "rulePreviewLabel": {
-    "message": "备注（可选）"
+    "message": "标签"
   },
   "rulePreviewPlaceholder": {
     "message": "推广横幅"
   },
   "ruleFormHint": {
-    "message": "路径前缀会把规则限制在该路径及其子路径；留空则对整个站点生效。"
+    "message": "仅作用于该路径及其子路径。"
   },
   "addRuleButton": {
-    "message": "添加规则"
+    "message": "添加"
   },
   "saveRuleButton": {
-    "message": "保存修改"
+    "message": "保存"
   },
   "cancel": {
     "message": "取消"
@@ -237,22 +228,22 @@
     "message": "选择器已复制。"
   },
   "copyFailed": {
-    "message": "复制选择器失败。"
+    "message": "复制失败。"
   },
   "ruleSelectorRequired": {
-    "message": "请输入 CSS 选择器。"
+    "message": "请输入选择器。"
   },
   "ruleSelectorInvalid": {
-    "message": "CSS 选择器无效。"
+    "message": "选择器无效。"
   },
   "ruleSelectorUnsafe": {
-    "message": "该选择器会隐藏整个页面，已拒绝。"
+    "message": "该选择器会隐藏整个页面。"
   },
   "ruleDuplicate": {
-    "message": "已存在完全相同的规则。"
+    "message": "规则已存在。"
   },
   "ruleHostWhitelisted": {
-    "message": "该站点在例外列表中，请先移除。"
+    "message": "网站在例外中，请先移除。"
   },
   "ruleSaved": {
     "message": "规则已保存。"
@@ -261,19 +252,19 @@
     "message": "启用或停用这条规则"
   },
   "ruleToggleFailed": {
-    "message": "修改规则失败，请重试。"
+    "message": "规则更新失败。"
   },
   "ruleDisabled": {
     "message": "已停用"
   },
   "pathBadgeTitle": {
-    "message": "这条规则仅对这个路径前缀生效"
+    "message": "仅作用于该路径前缀"
   },
   "scopeHost": {
-    "message": "仅本主机"
+    "message": "仅此主机"
   },
   "scopeDomain": {
-    "message": "本主机及子域名"
+    "message": "主机及子域"
   },
   "scopeGlobal": {
     "message": "所有网站"
@@ -282,13 +273,13 @@
     "message": "所有网站"
   },
   "rulesNoMatch": {
-    "message": "没有匹配的规则。"
+    "message": "没有匹配项。"
   },
   "searchCount": {
-    "message": "显示 $1 / $2 条"
+    "message": "$1 / $2"
   },
   "ruleSearchPlaceholder": {
-    "message": "搜索站点、选择器或备注"
+    "message": "搜索规则"
   },
   "ruleSearchAria": {
     "message": "搜索规则"
@@ -297,25 +288,22 @@
     "message": "规则已删除。"
   },
   "groupLimit": {
-    "message": "接近上限：本站已有 $1/$2 条规则"
+    "message": "本站 $1 / $2 条规则"
   },
   "ruleLimitWarning": {
-    "message": "本站已有 $1/$2 条规则。可用“匹配相似元素”减少规则数量。"
+    "message": "本站已有 $1 / $2 条规则。"
   },
   "ruleLimitTotalWarning": {
-    "message": "当前共有 $1/$2 条规则。继续添加前建议先导出备份。"
+    "message": "总计 $1 / $2 条规则，建议先导出备份。"
   },
   "ruleLimitTotal": {
-    "message": "规则总数已达上限，请先删除一些规则。"
+    "message": "规则数已达上限，请先删除部分规则。"
   },
   "allRulesHeading": {
-    "message": "全部屏蔽规则"
-  },
-  "allRulesDesc": {
-    "message": "按站点分组。可停用、编辑或删除规则。"
+    "message": "规则"
   },
   "rulesEmpty": {
-    "message": "还没有屏蔽规则"
+    "message": "暂无规则。"
   },
   "ruleCountOne": {
     "message": "1 条规则"
@@ -324,61 +312,49 @@
     "message": "$1 条规则"
   },
   "backupHeading": {
-    "message": "导入与导出"
-  },
-  "backupDesc": {
-    "message": "把规则和例外保存为 JSON 文件，或恢复到另一个配置文件。不会上传任何内容。"
+    "message": "备份"
   },
   "exportButton": {
-    "message": "导出 JSON"
+    "message": "导出"
   },
   "importButton": {
-    "message": "导入 JSON"
+    "message": "导入"
   },
   "importModeAria": {
     "message": "导入方式"
   },
   "importMerge": {
-    "message": "与现有规则合并"
+    "message": "合并"
   },
   "importReplace": {
-    "message": "替换现有规则"
+    "message": "替换"
   },
   "importReplaceConfirm": {
-    "message": "用此文件替换当前全部规则和例外？此操作无法撤销。"
+    "message": "替换全部规则和例外？"
   },
   "importing": {
-    "message": "正在导入…"
+    "message": "导入中…"
   },
   "importDone": {
-    "message": "导入完成：新增 $1 条，跳过 $2 条，共 $3 条规则。"
+    "message": "已导入 $1 条，跳过 $2 条。"
   },
   "importFailed": {
-    "message": "导入失败，文件未变更。"
+    "message": "导入失败，文件未修改。"
   },
   "importInvalid": {
-    "message": "该文件不是有效的 IUxx 备份。"
+    "message": "不是 IUxx 备份文件。"
   },
   "importNothing": {
-    "message": "文件中没有可用的规则或例外。"
+    "message": "没有可用的规则或例外。"
   },
   "importTooLarge": {
-    "message": "文件过大（最大 2 MB）。"
+    "message": "文件过大（上限 2 MB）。"
   },
   "exportDone": {
     "message": "已导出 $1 条规则。"
   },
   "exportFailed": {
-    "message": "导出失败，请重试。"
-  },
-  "footerDesktopPrefix": {
-    "message": "在选择器中扩大或缩小范围后确认屏蔽；按"
-  },
-  "footerDesktopSuffix": {
-    "message": "退出。"
-  },
-  "footerTouch": {
-    "message": "选中元素后调整范围并确认屏蔽；点按面板中的“退出”可取消。"
+    "message": "导出失败。"
   },
   "notifyWhitelistedSite": {
     "message": "本站已排除，不会屏蔽任何元素。"

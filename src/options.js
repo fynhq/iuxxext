@@ -30,6 +30,7 @@
     searchCount: document.getElementById('search-count'),
     keepOpen: document.getElementById('keep-open'),
     behaviorStatus: document.getElementById('behavior-status'),
+    ruleCard: document.getElementById('rule-card'),
     ruleForm: document.getElementById('rule-form'),
     ruleFormTitle: document.getElementById('rule-form-title'),
     ruleHost: document.getElementById('rule-host'),
@@ -543,7 +544,8 @@
     els.ruleCancel.hidden = false;
     updateFormForScope();
     showRuleError('');
-    els.ruleForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    els.ruleCard.open = true;
+    els.ruleCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
     els.ruleSelector.focus();
   }
 
@@ -557,6 +559,7 @@
     els.ruleCancel.hidden = true;
     showRuleError('');
     updateFormForScope();
+    els.ruleCard.open = false;
   }
 
   function validateSelector(selector) {

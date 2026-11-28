@@ -24,19 +24,16 @@
     "message": "Settings"
   },
   "optionsPageTitle": {
-    "message": "Settings · IUxx"
+    "message": "IUxx Settings"
   },
   "optionsIntro": {
-    "message": "Create rules from a page or manually, then manage scopes, paths, exceptions, and backups."
+    "message": "Manage rules, exceptions, and backups."
   },
   "behaviorHeading": {
     "message": "Behavior"
   },
-  "behaviorDesc": {
-    "message": "Choose how the picker behaves after a rule is created."
-  },
   "keepPickerOpen": {
-    "message": "Keep the picker open after blocking"
+    "message": "Keep picker open after blocking"
   },
   "settingSaved": {
     "message": "Saved."
@@ -152,44 +149,38 @@
   "whitelistHeading": {
     "message": "Exceptions"
   },
-  "whitelistDesc": {
-    "message": "Sites on the exceptions list are never blocked. Entries also cover subdomains."
-  },
   "whitelistPlaceholder": {
-    "message": "example.com or https://example.com/page"
+    "message": "example.com"
   },
   "whitelistInputAria": {
-    "message": "Domain to add to the exceptions list"
+    "message": "Domain to add to exceptions"
   },
   "add": {
     "message": "Add"
   },
   "invalidDomain": {
-    "message": "Enter a valid domain, such as example.com"
+    "message": "Enter a valid domain."
   },
   "saveFailed": {
-    "message": "Could not save. Try again."
+    "message": "Couldn't save. Try again."
   },
   "removeFailed": {
-    "message": "Could not remove. Try again."
+    "message": "Couldn't remove. Try again."
   },
   "whitelistEmpty": {
-    "message": "The exceptions list is empty"
+    "message": "No exceptions yet."
   },
   "remove": {
     "message": "Remove"
   },
   "removeFromWhitelistAria": {
-    "message": "Remove $1 from the exceptions"
+    "message": "Remove $1 from exceptions"
   },
   "addRuleHeading": {
-    "message": "Add a rule"
+    "message": "Add rule"
   },
   "editRuleHeading": {
     "message": "Edit rule"
-  },
-  "addRuleDesc": {
-    "message": "Create a rule manually, or use the picker on the page."
   },
   "ruleHostLabel": {
     "message": "Site"
@@ -201,25 +192,25 @@
     "message": "Scope"
   },
   "ruleSelectorLabel": {
-    "message": "CSS selector"
+    "message": "Selector"
   },
   "rulePathLabel": {
-    "message": "Path prefix (optional)"
+    "message": "Path prefix"
   },
   "rulePreviewLabel": {
-    "message": "Label (optional)"
+    "message": "Label"
   },
   "rulePreviewPlaceholder": {
     "message": "Promo banner"
   },
   "ruleFormHint": {
-    "message": "A path prefix limits the rule to that path and its subpaths. Leave it empty for the whole site."
+    "message": "Limits to this path and its subpaths."
   },
   "addRuleButton": {
-    "message": "Add rule"
+    "message": "Add"
   },
   "saveRuleButton": {
-    "message": "Save changes"
+    "message": "Save"
   },
   "cancel": {
     "message": "Cancel"
@@ -237,22 +228,22 @@
     "message": "Selector copied."
   },
   "copyFailed": {
-    "message": "Could not copy the selector."
+    "message": "Couldn't copy the selector."
   },
   "ruleSelectorRequired": {
-    "message": "Enter a CSS selector."
+    "message": "Enter a selector."
   },
   "ruleSelectorInvalid": {
-    "message": "This CSS selector is not valid."
+    "message": "Invalid selector."
   },
   "ruleSelectorUnsafe": {
-    "message": "This selector would hide the whole page and was rejected."
+    "message": "This selector would hide the whole page."
   },
   "ruleDuplicate": {
-    "message": "An identical rule already exists."
+    "message": "Rule already exists."
   },
   "ruleHostWhitelisted": {
-    "message": "This site is on the exceptions list. Remove it first."
+    "message": "Site is in exceptions. Remove it first."
   },
   "ruleSaved": {
     "message": "Rule saved."
@@ -261,34 +252,34 @@
     "message": "Enable or disable this rule"
   },
   "ruleToggleFailed": {
-    "message": "Could not change the rule. Try again."
+    "message": "Couldn't update the rule."
   },
   "ruleDisabled": {
     "message": "Disabled"
   },
   "pathBadgeTitle": {
-    "message": "This rule only applies to this path prefix"
+    "message": "Applies to this path prefix"
   },
   "scopeHost": {
-    "message": "This host only"
+    "message": "This host"
   },
   "scopeDomain": {
-    "message": "Host and subdomains"
+    "message": "Host + subdomains"
   },
   "scopeGlobal": {
-    "message": "All websites"
+    "message": "All sites"
   },
   "allSites": {
-    "message": "All websites"
+    "message": "All sites"
   },
   "rulesNoMatch": {
-    "message": "No rules match your search."
+    "message": "No matches."
   },
   "searchCount": {
-    "message": "$1 of $2 rules"
+    "message": "$1 / $2"
   },
   "ruleSearchPlaceholder": {
-    "message": "Search sites, selectors, or labels"
+    "message": "Search rules"
   },
   "ruleSearchAria": {
     "message": "Search rules"
@@ -297,25 +288,22 @@
     "message": "Rule deleted."
   },
   "groupLimit": {
-    "message": "Approaching the limit: $1 of $2 rules for this site"
+    "message": "$1 / $2 rules for this site"
   },
   "ruleLimitWarning": {
-    "message": "This site has $1 of $2 rules. Rules that match similar elements can reduce the count."
+    "message": "$1 / $2 rules on this site."
   },
   "ruleLimitTotalWarning": {
-    "message": "You have $1 of $2 rules in total. Export a backup before adding more."
+    "message": "$1 / $2 rules total. Export a backup."
   },
   "ruleLimitTotal": {
-    "message": "The total rule limit has been reached. Delete some rules first."
+    "message": "Rule limit reached. Delete some rules."
   },
   "allRulesHeading": {
-    "message": "All blocking rules"
-  },
-  "allRulesDesc": {
-    "message": "Grouped by site. Disable, edit, or delete a rule to change its effect."
+    "message": "Rules"
   },
   "rulesEmpty": {
-    "message": "No blocking rules yet"
+    "message": "No rules yet."
   },
   "ruleCountOne": {
     "message": "1 rule"
@@ -324,61 +312,49 @@
     "message": "$1 rules"
   },
   "backupHeading": {
-    "message": "Import and export"
-  },
-  "backupDesc": {
-    "message": "Save your rules and exceptions to a JSON file, or restore them on another profile. Nothing is uploaded."
+    "message": "Backup"
   },
   "exportButton": {
-    "message": "Export JSON"
+    "message": "Export"
   },
   "importButton": {
-    "message": "Import JSON"
+    "message": "Import"
   },
   "importModeAria": {
     "message": "Import mode"
   },
   "importMerge": {
-    "message": "Merge with existing"
+    "message": "Merge"
   },
   "importReplace": {
-    "message": "Replace existing"
+    "message": "Replace"
   },
   "importReplaceConfirm": {
-    "message": "Replace all current rules and exceptions with this file? This cannot be undone."
+    "message": "Replace all rules and exceptions?"
   },
   "importing": {
     "message": "Importing…"
   },
   "importDone": {
-    "message": "Imported: $1 added, $2 skipped, $3 total rules."
+    "message": "Imported $1, skipped $2."
   },
   "importFailed": {
-    "message": "Import failed. The file was not changed."
+    "message": "Import failed. File unchanged."
   },
   "importInvalid": {
-    "message": "This file does not look like an IUxx backup."
+    "message": "Not an IUxx backup."
   },
   "importNothing": {
-    "message": "The file contains no usable rules or exceptions."
+    "message": "No usable rules or exceptions."
   },
   "importTooLarge": {
-    "message": "The file is too large (max 2 MB)."
+    "message": "File too large (max 2 MB)."
   },
   "exportDone": {
     "message": "Exported $1 rules."
   },
   "exportFailed": {
-    "message": "Export failed. Try again."
-  },
-  "footerDesktopPrefix": {
-    "message": "In the picker, expand or shrink the range and confirm to block; press"
-  },
-  "footerDesktopSuffix": {
-    "message": "to exit."
-  },
-  "footerTouch": {
-    "message": "After selecting an element, adjust the range and confirm to block; tap Exit in the panel to cancel."
+    "message": "Export failed."
   },
   "notifyWhitelistedSite": {
     "message": "This site is excluded. Nothing will be blocked."
