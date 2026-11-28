@@ -378,7 +378,7 @@
     "message": "退出。"
   },
   "footerTouch": {
-    "message": "选中元素后调整范围并确认屏蔽；点按顶部的“退出”可取消。"
+    "message": "选中元素后调整范围并确认屏蔽；点按面板中的“退出”可取消。"
   },
   "notifyWhitelistedSite": {
     "message": "本站已排除，不会屏蔽任何元素。"
@@ -404,20 +404,23 @@
   "pickerHudClick": {
     "message": "点击要屏蔽的元素"
   },
-  "pickerHudReselect": {
-    "message": "点按另一个元素可重新选择"
-  },
   "pickerHudZap": {
     "message": "点击临时隐藏 · 也可按 Del · Esc 退出"
   },
   "pickerHudZapTap": {
-    "message": "点按临时隐藏 · Esc 退出"
+    "message": "点按临时隐藏"
   },
   "exit": {
     "message": "退出"
   },
   "selectionRange": {
     "message": "选择范围"
+  },
+  "panelEmptyTitle": {
+    "message": "选择元素"
+  },
+  "zapBarAria": {
+    "message": "临时隐藏操作"
   },
   "selectionDepth": {
     "message": "第 $1 层"
@@ -467,8 +470,8 @@
   "blocking": {
     "message": "正在屏蔽…"
   },
-  "extensionUpdated": {
-    "message": "扩展已更新，请刷新页面后重试。"
+  "backgroundUnavailable": {
+    "message": "扩展后台没有响应，规则保存失败。请重启 Firefox 后重试。"
   },
   "siteWhitelisted": {
     "message": "本站已排除。"

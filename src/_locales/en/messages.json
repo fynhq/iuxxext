@@ -378,7 +378,7 @@
     "message": "to exit."
   },
   "footerTouch": {
-    "message": "After selecting an element, adjust the range and confirm to block; tap Exit at the top to cancel."
+    "message": "After selecting an element, adjust the range and confirm to block; tap Exit in the panel to cancel."
   },
   "notifyWhitelistedSite": {
     "message": "This site is excluded. Nothing will be blocked."
@@ -404,20 +404,23 @@
   "pickerHudClick": {
     "message": "Click the element to block"
   },
-  "pickerHudReselect": {
-    "message": "Tap another element to reselect"
-  },
   "pickerHudZap": {
     "message": "Click to hide temporarily · Del also works · Esc exits"
   },
   "pickerHudZapTap": {
-    "message": "Tap to hide temporarily · Esc exits"
+    "message": "Tap to hide temporarily"
   },
   "exit": {
     "message": "Exit"
   },
   "selectionRange": {
     "message": "Selected range"
+  },
+  "panelEmptyTitle": {
+    "message": "Select an element"
+  },
+  "zapBarAria": {
+    "message": "Temporary hiding controls"
   },
   "selectionDepth": {
     "message": "Level $1"
@@ -467,8 +470,8 @@
   "blocking": {
     "message": "Blocking…"
   },
-  "extensionUpdated": {
-    "message": "The extension was updated. Reload the page and try again."
+  "backgroundUnavailable": {
+    "message": "The extension background is not responding and the rule could not be saved. Restart Firefox and try again."
   },
   "siteWhitelisted": {
     "message": "This site is excluded."

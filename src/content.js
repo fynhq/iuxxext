@@ -11,6 +11,8 @@
     SETTINGS_KEY,
     normalizeDomain,
     normalizePath,
+    normalizeRule,
+    normalizeScope,
     readStore,
     readSettings,
     isWhitelisted,
@@ -18,6 +20,9 @@
     buildCss,
     selectorIsStorable,
     selectorTargetsRoot,
+    countAnchorRules,
+    MAX_RULES_PER_ANCHOR,
+    MAX_RULES_TOTAL,
     makeId,
     describeElement,
     t
@@ -173,6 +178,75 @@
     }
   }
 
+  function sameRuleShape(a, b) {
+    return !!a && !!b &&
+      a.host === b.host &&
+      a.scope === b.scope &&
+      a.path === b.path &&
+      a.selector === b.selector;
+  }
+
+  async function sendMessageWithRetry(message, attempts, timeoutMs) {
+    const tries = attempts || 2;
+    const timeout = timeoutMs || 2500;
+    let lastError = null;
+    for (let i = 0; i < tries; i += 1) {
+      try {
+        return await Promise.race([
+          api.runtime.sendMessage(message),
+          new Promise((resolve, reject) => {
+            setTimeout(() => reject(new Error('Background response timed out')), timeout);
+          })
+        ]);
+      } catch (error) {
+        lastError = error;
+        if (i + 1 < tries) {
+          await new Promise((resolve) => setTimeout(resolve, 120));
+        }
+      }
+    }
+    throw lastError || new Error('Background message failed');
+  }
+
+  async function addRuleDirect(payload) {
+    const store = await readStore();
+    const scope = normalizeScope(payload.scope);
+    const rule = normalizeRule({
+      id: makeId(),
+      host: scope === 'global' ? '*' : payload.hostname,
+      scope,
+      selector: payload.selector,
+      path: payload.path,
+      preview: payload.preview,
+      enabled: true,
+      createdAt: Date.now()
+    });
+    if (!rule) return { ok: false, error: 'invalid' };
+    if (rule.scope !== 'global' && isWhitelisted(rule.host, store.whitelist)) {
+      return { ok: false, error: 'whitelisted' };
+    }
+    const existing = store.rules.find((item) => sameRuleShape(item, rule));
+    if (existing) return { ok: true, rule: existing, duplicate: true };
+    if (countAnchorRules(store.rules, rule.host) >= MAX_RULES_PER_ANCHOR) {
+      return { ok: false, error: 'limit' };
+    }
+    if (store.rules.length >= MAX_RULES_TOTAL) {
+      return { ok: false, error: 'limitTotal' };
+    }
+    store.rules.push(rule);
+    await api.storage.local.set({ [RULES_KEY]: { version: 2, rules: store.rules } });
+    return { ok: true, rule };
+  }
+
+  async function removeRuleDirect(id) {
+    const store = await readStore();
+    const index = store.rules.findIndex((rule) => rule.id === id);
+    if (index === -1) return { ok: true, removed: null };
+    const [removed] = store.rules.splice(index, 1);
+    await api.storage.local.set({ [RULES_KEY]: { version: 2, rules: store.rules } });
+    return { ok: true, removed };
+  }
+
   async function startPicker(mode, source) {
     await stateReady;
     if (mode === 'block' && whitelisted) {
@@ -257,9 +331,14 @@
     options = options || {};
     clearNotice();
     if (!document.documentElement) return;
+    let bottom = 24;
+    try {
+      if (picker && typeof picker.toastOffset === 'function') bottom = picker.toastOffset();
+    } catch {
+    }
     const root = document.createElement(TOAST_TAG);
     root.style.cssText =
-      'all: initial !important; position: fixed !important; left: 50% !important; bottom: 24px !important;' +
+      `all: initial !important; position: fixed !important; left: 50% !important; bottom: ${bottom}px !important;` +
       'transform: translateX(-50%) !important; z-index: 2147483647 !important; display: block !important;' +
       'width: max-content !important; max-width: 92vw !important; pointer-events: none !important;';
     const shadow = root.attachShadow({ mode: 'open' });
@@ -334,33 +413,6 @@
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
       z-index: 3;
     }
-    .hud {
-      position: fixed; top: 14px; left: 50%; transform: translateX(-50%);
-      display: flex; align-items: center; gap: 8px; pointer-events: none;
-      width: max-content; max-width: calc(100vw - 20px); white-space: nowrap;
-      padding: 8px 14px; border-radius: 999px;
-      background: var(--iu-surface); color: var(--iu-text);
-      border: 1px solid var(--iu-border);
-      font: 13px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif;
-      box-shadow: var(--iu-shadow); z-index: 4;
-    }
-    .hud.hide { display: none; }
-    .hud .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--iu-primary); flex: none; }
-    .hud kbd {
-      display: inline-block; padding: 1px 5px; border-radius: 4px;
-      border: 1px solid var(--iu-kbd-border); background: var(--iu-kbd-bg);
-      font: 11px/1.4 ui-monospace, monospace;
-    }
-    .hud .hud-count {
-      color: var(--iu-muted); font-size: 12px;
-    }
-    .hud-exit {
-      pointer-events: auto; cursor: pointer; flex: none; white-space: nowrap;
-      margin: -2px -4px -2px 0; padding: 2px 8px; border-radius: 5px;
-      border: 1px solid var(--iu-btn-border); background: transparent;
-      color: var(--iu-text); font: inherit; line-height: 1.4;
-    }
-    .hud-exit:hover { background: var(--iu-hover); }
     .panel {
       position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%);
       display: none; width: min(680px, calc(100vw - 24px)); padding: 12px 14px;
@@ -416,12 +468,23 @@
     }
     .panel-warning.show { display: block; }
     .panel-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+    .panel.panel-empty .panel-depth,
+    .panel.panel-empty .panel-selector,
+    .panel.panel-empty .panel-row,
+    .panel.panel-empty .panel-warning,
+    .panel.panel-empty .panel-msg { display: none; }
+    .panel.panel-empty .panel-actions {
+      display: flex; justify-content: flex-end; margin-top: 8px;
+    }
+    .panel.panel-empty .panel-actions .pbtn:not(.exit) { display: none; }
+    .panel.panel-empty .pbtn.exit { margin-right: 0; }
     .pbtn {
       appearance: none; padding: 5px 12px; border-radius: 7px; cursor: pointer;
       border: 1px solid var(--iu-btn-border); background: transparent;
       color: var(--iu-text); font: inherit; line-height: 1.4;
     }
     .pbtn:hover:not(:disabled) { background: var(--iu-hover); }
+    .pbtn.exit { margin-right: auto; }
     .pbtn.primary { background: var(--iu-primary); border-color: var(--iu-primary); font-weight: 600; color: #fff; }
     .pbtn.primary:hover:not(:disabled) { background: var(--iu-primary-hover); border-color: var(--iu-primary-hover); }
     .pbtn:disabled { opacity: .4; cursor: default; }
@@ -429,10 +492,24 @@
     .panel-msg { display: none; margin-top: 8px; color: var(--iu-danger); font-size: 11.5px; }
     .panel-msg.show { display: block; }
     .panel-hint { margin-top: 8px; color: var(--iu-muted); font-size: 11px; }
+    .zap-bar {
+      position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%);
+      display: flex; align-items: center; gap: 12px;
+      max-width: calc(100vw - 24px); padding: 8px 12px;
+      border-radius: 10px; background: var(--iu-surface); color: var(--iu-text);
+      border: 1px solid var(--iu-border); box-shadow: var(--iu-shadow);
+      font: 12.5px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif;
+      z-index: 6; pointer-events: auto;
+    }
+    .zap-bar .zap-hint {
+      flex: 1 1 auto; min-width: 0; color: var(--iu-text); font-size: 12px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .zap-bar .zap-count {
+      flex: none; color: var(--iu-muted); font-size: 12px; white-space: nowrap;
+    }
+    .zap-bar .pbtn.exit { margin-left: auto; margin-right: 0; flex: none; }
     @media (pointer: coarse) {
-      .hud { max-width: calc(100vw - 20px); top: 10px; padding: 8px 10px; gap: 8px; }
-      .hud kbd { display: none; }
-      .hud-exit { min-height: 44px; margin: 0; padding: 4px 12px; }
       .panel { bottom: 10px; width: calc(100vw - 16px); padding: 12px; }
       .panel-grip {
         display: flex; align-items: center; justify-content: center;
@@ -449,11 +526,18 @@
       .panel-actions {
         display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
       }
+      .panel-actions .pbtn.exit { margin-right: 0; }
+      .panel-actions .pbtn.primary { grid-column: 1 / -1; }
+      .panel.panel-empty .panel-actions { display: flex; justify-content: flex-end; }
       .pbtn { min-height: 44px; padding: 8px 12px; font-size: 14px; }
       .panel-mini-btn { min-height: 36px; padding: 6px 10px; font-size: 12.5px; }
       .panel-select { min-height: 36px; font-size: 12.5px; }
       .panel-check { min-height: 36px; }
       .panel-hint { display: none; }
+      .zap-bar {
+        bottom: 10px; width: calc(100vw - 16px); padding: 10px 12px;
+      }
+      .zap-bar .pbtn.exit { min-height: 44px; }
     }
   `;
 
@@ -750,28 +834,10 @@
     hl.className = 'hl';
     const tip = document.createElement('div');
     tip.className = 'tip';
-    const hud = document.createElement('div');
-    hud.className = 'hud';
     const coarsePointer = window.matchMedia('(pointer: coarse)').matches;
-    const dot = document.createElement('span');
-    dot.className = 'dot';
-    const hudText = document.createElement('span');
-    const hudKey = document.createElement('kbd');
-    hudKey.textContent = 'Esc';
-    const hudCount = document.createElement('span');
-    hudCount.className = 'hud-count';
-    const hudExit = document.createElement('button');
-    hudExit.type = 'button';
-    hudExit.className = 'hud-exit';
-    hudExit.textContent = t('exit');
-    hud.append(dot, hudText);
-    if (mode === 'zap') hud.append(hudCount);
-    hud.append(hudKey, hudExit);
-    hudText.textContent = mode === 'zap'
-      ? (coarsePointer ? t('pickerHudZapTap') : t('pickerHudZap'))
-      : (coarsePointer ? t('pickerHudTap') : t('pickerHudClick'));
 
     let panel = null;
+    let panelTitle = null;
     let panelGrip = null;
     let panelHead = null;
     let panelDesc = null;
@@ -787,7 +853,29 @@
     let shrinkBtn = null;
     let growBtn = null;
     let reselectBtn = null;
+    let exitBtn = null;
     let confirmBtn = null;
+    let zapBar = null;
+    let zapCount = null;
+
+    if (mode === 'zap') {
+      zapBar = document.createElement('div');
+      zapBar.className = 'zap-bar';
+      zapBar.setAttribute('role', 'group');
+      zapBar.setAttribute('aria-label', t('zapBarAria'));
+      const zapHint = document.createElement('span');
+      zapHint.className = 'zap-hint';
+      zapHint.textContent = coarsePointer ? t('pickerHudZapTap') : t('pickerHudZap');
+      zapCount = document.createElement('span');
+      zapCount.className = 'zap-count';
+      zapCount.textContent = t('zapCount', ['0']);
+      const zapExit = document.createElement('button');
+      zapExit.type = 'button';
+      zapExit.className = 'pbtn exit';
+      zapExit.textContent = t('exit');
+      zapExit.addEventListener('click', stopAndReport);
+      zapBar.append(zapHint, zapCount, zapExit);
+    }
 
     if (mode === 'block') {
       panel = document.createElement('div');
@@ -801,9 +889,9 @@
 
       panelHead = document.createElement('div');
       panelHead.className = 'panel-head';
-      const panelTitle = document.createElement('span');
+      panelTitle = document.createElement('span');
       panelTitle.className = 'panel-title';
-      panelTitle.textContent = t('selectionRange');
+      panelTitle.textContent = t('panelEmptyTitle');
       panelDepth = document.createElement('span');
       panelDepth.className = 'panel-depth';
       panelHead.append(panelTitle, panelDepth);
@@ -876,12 +964,17 @@
       reselectBtn.type = 'button';
       reselectBtn.className = 'pbtn';
       reselectBtn.textContent = t('reselect');
+      exitBtn = document.createElement('button');
+      exitBtn.type = 'button';
+      exitBtn.className = 'pbtn exit';
+      exitBtn.textContent = t('exit');
+      exitBtn.addEventListener('click', stopPicker);
       confirmBtn = document.createElement('button');
       confirmBtn.type = 'button';
       confirmBtn.className = 'pbtn primary';
       confirmBtn.textContent = t('block');
       confirmBtn.title = t('blockTitle');
-      panelActions.append(shrinkBtn, growBtn, reselectBtn, confirmBtn);
+      panelActions.append(exitBtn, shrinkBtn, growBtn, reselectBtn, confirmBtn);
 
       panelMsg = document.createElement('div');
       panelMsg.className = 'panel-msg';
@@ -890,12 +983,15 @@
       panelHint.textContent = t('pickerHintBar');
 
       panel.append(panelGrip, panelHead, panelDesc, panelSelector, matchRow, scopeRow, panelWarning, panelActions, panelMsg, panelHint);
+      panelDesc.textContent = coarsePointer ? t('pickerHudTap') : t('pickerHudClick');
+      panel.classList.add('panel-empty');
+      panel.classList.add('show');
     }
 
-    shadow.append(style, hl, tip, hud);
+    shadow.append(style, hl, tip);
     if (panel) shadow.appendChild(panel);
+    if (zapBar) shadow.appendChild(zapBar);
     document.documentElement.appendChild(root);
-    hud.classList.remove('hide');
 
     const cursorStyle = document.createElement('style');
     cursorStyle.textContent = 'html, html * { cursor: crosshair !important; }';
@@ -1205,12 +1301,7 @@
     }
 
     function panelTopLimit() {
-      const margin = 6;
-      if (!hud.classList.contains('hide')) {
-        const rect = hud.getBoundingClientRect();
-        if (rect.height > 0) return Math.max(margin, rect.bottom + 8);
-      }
-      return margin;
+      return 6;
     }
 
     function clampPanelToViewport() {
@@ -1279,11 +1370,8 @@
       baseInShadow = !!info.inShadow;
       selectionInShadow = baseInShadow;
       hoverInfo = null;
-      if (coarsePointer) {
-        hudText.textContent = t('pickerHudReselect');
-      } else {
-        hud.classList.add('hide');
-      }
+      panelTitle.textContent = t('selectionRange');
+      panel.classList.remove('panel-empty');
       panel.classList.add('show');
       showMessage('');
       recomputeSelection();
@@ -1319,9 +1407,11 @@
       broadSelector = '';
       matchState = { valid: false, count: 0, unsafe: false };
       clearDerivedStyles();
-      panel.classList.remove('show');
-      hud.classList.remove('hide');
-      hudText.textContent = coarsePointer ? t('pickerHudTap') : t('pickerHudClick');
+      panelTitle.textContent = t('panelEmptyTitle');
+      panelDesc.textContent = coarsePointer ? t('pickerHudTap') : t('pickerHudClick');
+      panelDepth.textContent = '';
+      panel.classList.add('panel-empty');
+      panel.classList.add('show');
       panelSelector.value = '';
       showMessage('');
       if (lastPoint.x >= 0) hoverInfo = targetInfoFromPoint(lastPoint.x, lastPoint.y);
@@ -1353,22 +1443,28 @@
       panelMsg.classList.remove('show');
       refreshPanel();
 
-      let result;
+      let result = null;
       try {
-        result = await api.runtime.sendMessage({
+        result = await sendMessageWithRetry({
           type: 'ADD_RULE',
           hostname,
           selector,
           preview,
           scope,
           path
-        });
-      } catch {
-        if (destroyed) return;
-        saving = false;
-        showMessage(t('extensionUpdated'));
-        refreshPanel();
-        return;
+        }, 2, 2500);
+      } catch (error) {
+        console.warn('[IUxx] Background messaging failed; saving the rule directly.', error);
+        try {
+          result = await addRuleDirect({ hostname, selector, preview, scope, path });
+        } catch (directError) {
+          console.warn('[IUxx] Direct rule save failed.', directError);
+          if (destroyed) return;
+          saving = false;
+          showMessage(t('backgroundUnavailable'));
+          refreshPanel();
+          return;
+        }
       }
       if (destroyed) return;
 
@@ -1383,9 +1479,12 @@
       }
       if (result.duplicate) {
         saving = false;
-        showMessage(result.rule && result.rule.enabled === false
-          ? t('alreadyBlockedDisabled')
-          : t('alreadyBlocked'));
+        if (result.rule && result.rule.enabled === false) {
+          showMessage(t('alreadyBlockedDisabled'));
+        } else {
+          await syncFromStorage();
+          showMessage(t('alreadyBlocked'));
+        }
         refreshPanel();
         return;
       }
@@ -1395,7 +1494,20 @@
       const ruleId = result.rule && result.rule.id;
       const undoAction = ruleId
         ? async () => {
-          const removed = await api.runtime.sendMessage({ type: 'REMOVE_RULE', id: ruleId });
+          let removed = null;
+          try {
+            removed = await sendMessageWithRetry({ type: 'REMOVE_RULE', id: ruleId }, 2, 2000);
+          } catch (error) {
+            console.warn('[IUxx] Background remove failed; removing the rule directly.', error);
+          }
+          if (!removed || !removed.ok) {
+            try {
+              removed = await removeRuleDirect(ruleId);
+            } catch (error) {
+              console.warn('[IUxx] Direct rule remove failed.', error);
+              return false;
+            }
+          }
           if (!removed || !removed.ok) return false;
           await syncFromStorage();
           return true;
@@ -1448,7 +1560,7 @@
     }
 
     function updateZapHud() {
-      hudCount.textContent = zapped.length ? t('zapCount', [String(zapped.length)]) : '';
+      zapCount.textContent = t('zapCount', [String(zapped.length)]);
     }
 
     function undoZap() {
@@ -1490,10 +1602,22 @@
     }
 
     function stopAndReport() {
-      if (mode === 'zap' && zapped.length) {
-        notify(t('zapExitHint', [String(zapped.length)]));
-      }
+      const count = zapped.length;
       stopPicker();
+      if (mode === 'zap' && count) {
+        notify(t('zapExitHint', [String(count)]));
+      }
+    }
+
+    function toastOffset() {
+      const target = mode === 'zap'
+        ? zapBar
+        : (panel && panel.classList.contains('show') ? panel : null);
+      if (!target) return 24;
+      const rect = target.getBoundingClientRect();
+      if (!rect || rect.height < 1) return 24;
+      const above = Math.round(window.innerHeight - rect.top + 12);
+      return Math.min(Math.max(24, above), Math.max(24, window.innerHeight - 72));
     }
 
     function onMouseMove(event) {
@@ -1581,11 +1705,6 @@
       schedulePaint();
     }
 
-    hudExit.addEventListener('click', () => {
-      if (mode === 'zap') stopAndReport();
-      else stopPicker();
-    });
-
     if (mode === 'block') {
       panelGrip.addEventListener('pointerdown', startPanelDrag);
       panelHead.addEventListener('pointerdown', startPanelDrag);
@@ -1651,6 +1770,7 @@
 
     return {
       mode,
+      toastOffset,
       preselectAt(x, y) {
         const info = targetInfoFromPoint(x, y);
         if (!info) return;
