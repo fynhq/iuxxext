@@ -20,7 +20,7 @@ English | [中文](#chinese)
 
 ## Install
 
-**From addons.mozilla.org** — The AMO listing will be linked here once the first version is published.
+**From addons.mozilla.org** — [IUxx on Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/iuxx/)
 
 ## Usage
 
@@ -85,7 +85,7 @@ IUxx 是一个 Firefox 扩展：点选网页上的任意元素，调整范围后
 
 ## 安装
 
-**从 addons.mozilla.org 安装** — 首个版本发布后，这里会补上 AMO 链接。
+**从 addons.mozilla.org 安装** — [Firefox 附加组件商店上的 IUxx](https://addons.mozilla.org/zh-CN/firefox/addon/iuxx/)
 
 ## 使用
 

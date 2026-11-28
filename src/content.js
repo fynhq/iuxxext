@@ -308,6 +308,7 @@
       z-index: 6; font: 13px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
     }
     .panel.show { display: block; }
+    .panel-grip { display: none; }
     .panel-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
     .panel-title { font-weight: 650; font-size: 13px; }
     .panel-depth { color: var(--iu-muted); font-size: 11.5px; white-space: nowrap; }
@@ -340,6 +341,18 @@
       .hud kbd { display: none; }
       .hud-exit { min-height: 44px; margin: 0; padding: 4px 12px; }
       .panel { bottom: 10px; width: calc(100vw - 16px); padding: 12px; }
+      .panel-grip {
+        display: flex; align-items: center; justify-content: center;
+        height: 26px; margin: -10px -6px 2px;
+        touch-action: none; cursor: grab;
+      }
+      .panel-grip::before {
+        content: ""; width: 44px; height: 5px; border-radius: 999px;
+        background: var(--iu-btn-border);
+      }
+      .panel-head { touch-action: none; cursor: grab; }
+      .panel.dragging { user-select: none; }
+      .panel.dragging, .panel.dragging .panel-grip, .panel.dragging .panel-head { cursor: grabbing; }
       .panel-actions {
         display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
       }
@@ -384,6 +397,10 @@
     panel.setAttribute('role', 'group');
     panel.setAttribute('aria-label', t('rangePanelAria'));
 
+    const panelGrip = document.createElement('div');
+    panelGrip.className = 'panel-grip';
+    panelGrip.setAttribute('aria-hidden', 'true');
+
     const panelHead = document.createElement('div');
     panelHead.className = 'panel-head';
     const panelTitle = document.createElement('span');
@@ -427,7 +444,7 @@
     panelHint.className = 'panel-hint';
     panelHint.textContent = t('pickerHintBar');
 
-    panel.append(panelHead, panelDesc, panelSelector, panelActions, panelMsg, panelHint);
+    panel.append(panelGrip, panelHead, panelDesc, panelSelector, panelActions, panelMsg, panelHint);
     shadow.append(style, hl, tip, hud, panel);
     document.documentElement.appendChild(root);
 
@@ -442,6 +459,13 @@
     let saving = false;
     let rafId = 0;
     let destroyed = false;
+    let dragPointerId = null;
+    let dragOffsetX = 0;
+    let dragOffsetY = 0;
+    let dragWidth = 0;
+    let dragHeight = 0;
+    let dragMinTop = 6;
+    let panelMoved = false;
 
     function isOwnEvent(event) {
       const path = typeof event.composedPath === 'function' ? event.composedPath() : [];
@@ -531,6 +555,75 @@
     function showMessage(text) {
       panelMsg.textContent = text || '';
       panelMsg.classList.toggle('show', !!text);
+      clampPanelToViewport();
+    }
+
+    function panelTopLimit() {
+      const margin = 6;
+      if (!hud.classList.contains('hide')) {
+        const rect = hud.getBoundingClientRect();
+        if (rect.height > 0) return Math.max(margin, rect.bottom + 8);
+      }
+      return margin;
+    }
+
+    function clampPanelToViewport() {
+      if (!panelMoved || destroyed || !panel.classList.contains('show')) return;
+      const rect = panel.getBoundingClientRect();
+      const margin = 6;
+      const minTop = panelTopLimit();
+      const maxLeft = Math.max(margin, window.innerWidth - rect.width - margin);
+      const maxTop = Math.max(minTop, window.innerHeight - rect.height - margin);
+      const left = Math.min(Math.max(margin, rect.left), maxLeft);
+      const top = Math.min(Math.max(minTop, rect.top), maxTop);
+      panel.style.left = `${left}px`;
+      panel.style.top = `${top}px`;
+    }
+
+    function startPanelDrag(event) {
+      if (dragPointerId !== null || event.button !== 0 || !panel.classList.contains('show')) return;
+      const rect = panel.getBoundingClientRect();
+      if (rect.width < 1 || rect.height < 1) return;
+      dragPointerId = event.pointerId;
+      dragOffsetX = event.clientX - rect.left;
+      dragOffsetY = event.clientY - rect.top;
+      dragWidth = rect.width;
+      dragHeight = rect.height;
+      dragMinTop = panelTopLimit();
+      panelMoved = true;
+      panel.style.left = `${rect.left}px`;
+      panel.style.top = `${rect.top}px`;
+      panel.style.bottom = 'auto';
+      panel.style.transform = 'none';
+      panel.classList.add('dragging');
+      if (panelGrip.setPointerCapture) {
+        try {
+          panelGrip.setPointerCapture(event.pointerId);
+        } catch {
+        }
+      }
+      event.preventDefault();
+    }
+
+    function movePanelDrag(event) {
+      if (dragPointerId === null || event.pointerId !== dragPointerId) return;
+      event.preventDefault();
+      const margin = 6;
+      const maxLeft = Math.max(margin, window.innerWidth - dragWidth - margin);
+      const maxTop = Math.max(dragMinTop, window.innerHeight - dragHeight - margin);
+      const left = Math.min(Math.max(margin, event.clientX - dragOffsetX), maxLeft);
+      const top = Math.min(Math.max(dragMinTop, event.clientY - dragOffsetY), maxTop);
+      panel.style.left = `${left}px`;
+      panel.style.top = `${top}px`;
+    }
+
+    function endPanelDrag(event) {
+      if (dragPointerId === null || event.pointerId !== dragPointerId) return;
+      if (panelGrip.hasPointerCapture && panelGrip.hasPointerCapture(event.pointerId)) {
+        panelGrip.releasePointerCapture(event.pointerId);
+      }
+      dragPointerId = null;
+      panel.classList.remove('dragging');
     }
 
     function syncButtons() {
@@ -727,6 +820,7 @@
     }
 
     function onViewportChange() {
+      clampPanelToViewport();
       if (selection) {
         schedulePaint();
         return;
@@ -734,6 +828,12 @@
       if (lastPoint.x >= 0) hoverEl = targetFromPoint(lastPoint.x, lastPoint.y);
       schedulePaint();
     }
+
+    panelGrip.addEventListener('pointerdown', startPanelDrag);
+    panelHead.addEventListener('pointerdown', startPanelDrag);
+    window.addEventListener('pointermove', movePanelDrag, { passive: false });
+    window.addEventListener('pointerup', endPanelDrag);
+    window.addEventListener('pointercancel', endPanelDrag);
 
     shrinkBtn.addEventListener('click', () => {
       shrinkRange();
@@ -772,6 +872,9 @@
         window.removeEventListener('keydown', onKeyDown, true);
         window.removeEventListener('scroll', onViewportChange, true);
         window.removeEventListener('resize', onViewportChange, true);
+        window.removeEventListener('pointermove', movePanelDrag, { passive: false });
+        window.removeEventListener('pointerup', endPanelDrag);
+        window.removeEventListener('pointercancel', endPanelDrag);
         cursorStyle.remove();
         root.remove();
       }
