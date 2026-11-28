@@ -1,0 +1,7 @@
+{
+  "name": "iuxxext",
+  "private": true,
+  "scripts": {
+    "test": "node --test tests/background.test.js tests/shared.test.js"
+  }
+}

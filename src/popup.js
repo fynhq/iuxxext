@@ -1,7 +1,16 @@
 (function () {
   'use strict';
 
-  const { api, t, readStore, rulesForHost, isWhitelisted, matchingWhitelist } = IUXX;
+  const {
+    api,
+    t,
+    readStore,
+    rulesForHost,
+    isWhitelisted,
+    matchingWhitelist,
+    buildRuleText,
+    createUndoBar
+  } = IUXX;
 
   const els = {
     unsupported: document.getElementById('unsupported'),
@@ -40,9 +49,14 @@
   };
   let hintTimer = 0;
   let accessToken = 0;
-  let lastDeleted = null;
-  let undoTimer = 0;
+  let renderTimer = 0;
+  let pendingReload = false;
   const coarsePointer = window.matchMedia('(pointer: coarse)').matches;
+  const undo = createUndoBar({
+    bar: els.undoBar,
+    text: els.undoText,
+    button: els.undoBtn
+  });
   const ACCESS_ORIGINS = ['*://*/*'];
   const access = {
     checked: false,
@@ -101,7 +115,6 @@
     els.accessAction.addEventListener('click', onAccessAction);
     els.options.addEventListener('click', openOptions);
     els.optionsLink.addEventListener('click', openOptions);
-    els.undoBtn.addEventListener('click', onUndoDelete);
   }
 
   function openOptions() {
@@ -133,7 +146,20 @@
         !(IUXX.WHITELIST_KEY in changes)) {
       return;
     }
-    loadState().then(render);
+    scheduleRender(true);
+  }
+
+  function scheduleRender(reload) {
+    if (reload) pendingReload = true;
+    if (renderTimer) return;
+    renderTimer = setTimeout(async () => {
+      renderTimer = 0;
+      if (pendingReload) {
+        pendingReload = false;
+        await loadState();
+      }
+      render();
+    }, 60);
   }
 
   async function loadState() {
@@ -212,12 +238,6 @@
     els.limitWarning.classList.toggle('hidden', !message);
   }
 
-  function scopeLabel(rule) {
-    if (rule.scope === 'global') return t('scopeGlobal');
-    if (rule.scope === 'domain') return t('scopeDomain');
-    return t('scopeHost');
-  }
-
   function buildRuleRow(rule) {
     const item = document.createElement('li');
     item.className = 'rule' + (rule.enabled === false ? ' off' : '');
@@ -232,40 +252,7 @@
     toggle.addEventListener('change', () => onRuleToggle(rule, toggle));
     toggleLabel.appendChild(toggle);
 
-    const text = document.createElement('div');
-    text.className = 'rule-text';
-
-    const preview = document.createElement('div');
-    preview.className = 'rule-preview';
-    preview.textContent = rule.preview || t('blockedElement');
-    preview.title = rule.preview || '';
-
-    const selector = document.createElement('div');
-    selector.className = 'rule-selector';
-    selector.textContent = rule.selector;
-    selector.title = rule.selector;
-
-    const meta = document.createElement('div');
-    meta.className = 'rule-meta';
-    const scope = document.createElement('span');
-    scope.className = 'rule-badge';
-    scope.textContent = scopeLabel(rule);
-    meta.appendChild(scope);
-    if (rule.path) {
-      const path = document.createElement('span');
-      path.className = 'rule-badge path';
-      path.textContent = rule.path;
-      path.title = t('pathBadgeTitle');
-      meta.appendChild(path);
-    }
-    if (rule.enabled === false) {
-      const disabled = document.createElement('span');
-      disabled.className = 'rule-badge disabled';
-      disabled.textContent = t('ruleDisabled');
-      meta.appendChild(disabled);
-    }
-
-    text.append(preview, selector, meta);
+    const text = buildRuleText(rule);
 
     const actions = document.createElement('div');
     actions.className = 'rule-actions';
@@ -292,7 +279,7 @@
       });
       if (!result || !result.ok) throw new Error('failed');
       rule.enabled = checkbox.checked;
-      render();
+      scheduleRender(false);
     } catch {
       checkbox.checked = !checkbox.checked;
       checkbox.disabled = false;
@@ -306,47 +293,27 @@
     try {
       const result = await api.runtime.sendMessage({ type: 'REMOVE_RULE', id: rule.id });
       if (!result || !result.ok) throw new Error('failed');
-      lastDeleted = result.removed || rule;
+      const removed = result.removed || rule;
       state.rules = state.rules.filter((item) => item.id !== rule.id);
-      state.anchorRules = Math.max(0, state.anchorRules - 1);
+      if (rule.scope !== 'global') {
+        state.anchorRules = Math.max(0, state.anchorRules - 1);
+      }
       state.totalRules = Math.max(0, state.totalRules - 1);
-      render();
-      showUndo(t('ruleDeleted'));
+      scheduleRender(false);
+      undo.show(t('ruleDeleted'), async () => {
+        let restored = null;
+        try {
+          restored = await api.runtime.sendMessage({ type: 'RESTORE_RULE', rule: removed });
+        } catch {
+          return false;
+        }
+        if (!restored || !restored.ok) return false;
+        scheduleRender(true);
+        return true;
+      });
     } catch {
       button.disabled = false;
       flash(t('deleteFailed'));
-    }
-  }
-
-  function showUndo(text) {
-    clearTimeout(undoTimer);
-    els.undoText.textContent = text;
-    els.undoBtn.disabled = false;
-    els.undoBtn.textContent = t('undo');
-    els.undoBar.classList.remove('hidden');
-    undoTimer = setTimeout(hideUndo, 8000);
-  }
-
-  function hideUndo() {
-    clearTimeout(undoTimer);
-    undoTimer = 0;
-    lastDeleted = null;
-    els.undoBar.classList.add('hidden');
-  }
-
-  async function onUndoDelete() {
-    if (!lastDeleted) return;
-    const rule = lastDeleted;
-    els.undoBtn.disabled = true;
-    try {
-      const result = await api.runtime.sendMessage({ type: 'RESTORE_RULE', rule });
-      if (!result || !result.ok) throw new Error('failed');
-      hideUndo();
-      await loadState();
-      render();
-    } catch {
-      els.undoBtn.disabled = false;
-      els.undoText.textContent = t('undoFailed');
     }
   }
 
@@ -359,17 +326,22 @@
         type: 'SET_WHITELIST',
         domain: hostname,
         enabled: !enableSite,
-        removeAll: !enableSite
+        removeAll: enableSite
       });
       if (!result || !result.ok) throw new Error('failed');
-      state.whitelisted = !enableSite;
-      state.whitelistEntry = !enableSite ? hostname : '';
+      const whitelist = Array.isArray(result.whitelist) ? result.whitelist : null;
+      state.whitelisted = whitelist
+        ? isWhitelisted(hostname, whitelist)
+        : !enableSite;
+      state.whitelistEntry = whitelist
+        ? matchingWhitelist(hostname, whitelist)
+        : (!enableSite ? hostname : '');
     } catch {
       els.toggle.checked = !els.toggle.checked;
       flash(t('toggleFailed'));
     } finally {
       els.toggle.disabled = false;
-      render();
+      scheduleRender(false);
     }
   }
 

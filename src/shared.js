@@ -358,6 +358,37 @@
     )).length;
   }
 
+  const EPHEMERAL_CLASSES = new Set([
+    'active', 'selected', 'open', 'opened', 'show', 'shown', 'visible', 'hidden',
+    'focus', 'focused', 'hover', 'hovered', 'expanded', 'collapsed', 'disabled',
+    'enabled', 'current', 'playing', 'loaded', 'loading', 'dragging'
+  ]);
+
+  function looksHashedClass(name) {
+    if (name.length > 40) return true;
+    const parts = name.split(/[-_]+/).filter(Boolean);
+    const tail = parts[parts.length - 1] || '';
+    if (tail.length >= 4 && /^[a-z0-9]+$/i.test(tail) && /\d/.test(tail) && /[a-z]/i.test(tail)) return true;
+    return false;
+  }
+
+  function looksDynamicId(id) {
+    if (id.length > 64) return true;
+    if (/^\d/.test(id)) return true;
+    if (/:r[0-9a-z]+:/i.test(id)) return true;
+    if (/^(?:ember|react|radix|mui|headlessui|downshift|ng|vue|svelte)-?\d{2,}$/i.test(id)) return true;
+    if (/[0-9a-f]{8}-[0-9a-f]{4}-[1-5]?[0-9a-f]{3}-[89ab]?[0-9a-f]{3}-[0-9a-f]{12}/i.test(id)) return true;
+    if (/(?:^|[-_])(?:id|uid|uuid|guid)[-_]?[0-9a-f]{6,}$/i.test(id)) return true;
+    return false;
+  }
+
+  function stableClasses(el) {
+    const names = Array.from(el.classList)
+      .filter((name) => !!name && !/^\d/.test(name) && !looksHashedClass(name));
+    const preferred = names.filter((name) => !EPHEMERAL_CLASSES.has(name.toLowerCase()));
+    return (preferred.length ? preferred : names).slice(0, 3);
+  }
+
   function describeElement(el) {
     if (!(el instanceof Element)) return '';
     let text = el.localName;
@@ -375,6 +406,102 @@
     } catch {
       return key;
     }
+  }
+
+  function ruleScopeLabel(rule) {
+    if (rule && rule.scope === 'global') return t('scopeGlobal');
+    if (rule && rule.scope === 'domain') return t('scopeDomain');
+    return t('scopeHost');
+  }
+
+  function buildRuleText(rule) {
+    if (!rule) return null;
+    const text = document.createElement('div');
+    text.className = 'rule-text';
+
+    const preview = document.createElement('div');
+    preview.className = 'rule-preview';
+    preview.textContent = rule.preview || t('blockedElement');
+    preview.title = rule.preview || '';
+
+    const selector = document.createElement('div');
+    selector.className = 'rule-selector';
+    selector.textContent = rule.selector;
+    selector.title = rule.selector;
+
+    const meta = document.createElement('div');
+    meta.className = 'rule-meta';
+    const scope = document.createElement('span');
+    scope.className = 'rule-badge';
+    scope.textContent = ruleScopeLabel(rule);
+    meta.appendChild(scope);
+
+    if (rule.path) {
+      const path = document.createElement('span');
+      path.className = 'rule-badge path';
+      path.textContent = rule.path;
+      path.title = t('pathBadgeTitle');
+      meta.appendChild(path);
+    }
+    if (rule.enabled === false) {
+      const disabled = document.createElement('span');
+      disabled.className = 'rule-badge disabled';
+      disabled.textContent = t('ruleDisabled');
+      meta.appendChild(disabled);
+    }
+
+    text.append(preview, selector, meta);
+    return text;
+  }
+
+  function createUndoBar(options) {
+    const { bar, text, button } = options;
+    const duration = options.duration || 8000;
+    let timer = 0;
+    let action = null;
+
+    function hide() {
+      clearTimeout(timer);
+      timer = 0;
+      action = null;
+      if (bar) bar.classList.add('hidden');
+    }
+
+    function arm(ms) {
+      clearTimeout(timer);
+      timer = setTimeout(hide, ms);
+    }
+
+    function show(message, undoAction) {
+      if (!bar || !text || !button) return;
+      clearTimeout(timer);
+      action = typeof undoAction === 'function' ? undoAction : null;
+      text.textContent = message || '';
+      button.textContent = t('undo');
+      button.disabled = !action;
+      bar.classList.remove('hidden');
+      arm(duration);
+    }
+
+    if (button) {
+      button.addEventListener('click', async () => {
+        if (!action || button.disabled) return;
+        const current = action;
+        button.disabled = true;
+        try {
+          const ok = await current();
+          if (ok === false) throw new Error('failed');
+          action = null;
+          text.textContent = t('undone');
+          arm(2600);
+        } catch {
+          text.textContent = t('undoFailed');
+          button.disabled = false;
+        }
+      });
+    }
+
+    return { show, hide };
   }
 
   function applyI18n(root) {
@@ -426,6 +553,9 @@
     selectorTargetsRoot,
     stableId,
     makeId,
+    looksHashedClass,
+    looksDynamicId,
+    stableClasses,
     ruleMatchesHost,
     ruleMatchesPath,
     ruleMatchesPage,
@@ -439,6 +569,9 @@
     readStore,
     readSettings,
     describeElement,
+    ruleScopeLabel,
+    buildRuleText,
+    createUndoBar,
     t,
     applyI18n
   };

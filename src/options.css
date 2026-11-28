@@ -613,6 +613,10 @@ main {
   color: var(--accent);
 }
 
+.rule-act.danger {
+  color: var(--accent);
+}
+
 .rule-act.danger:hover:not(:disabled) {
   border-color: var(--accent);
   color: var(--accent);

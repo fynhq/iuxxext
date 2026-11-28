@@ -36,7 +36,7 @@
       <div class="site-row">
         <div class="site-meta">
           <div id="hostname" class="hostname">example.com</div>
-          <div id="site-state" class="site-state"></div>
+          <div id="site-state" class="site-state" aria-live="polite"></div>
         </div>
         <label class="switch" title="Enable element blocking on this site" data-i18n-title="siteToggleTitle">
           <input id="site-toggle" type="checkbox" aria-label="Enable element blocking on this site" data-i18n-aria-label="siteToggleTitle">
@@ -49,7 +49,7 @@
           <button id="pick" class="primary-btn" type="button" data-i18n="pickButton">Select an element to block</button>
           <button id="zap" class="secondary-btn" type="button" data-i18n="zapButton">Hide temporarily</button>
         </div>
-        <p id="hint" class="hint" data-i18n="pickerHint">Click an element, adjust the range, then confirm</p>
+        <p id="hint" class="hint" aria-live="polite" data-i18n="pickerHint">Click an element, adjust the range, then confirm</p>
       </div>
 
       <section class="rules">

@@ -16,10 +16,13 @@
     readStore,
     readSettings,
     isWhitelisted,
+    ruleMatchesHost,
     selectorsForPage,
     buildCss,
     selectorIsStorable,
     selectorTargetsRoot,
+    looksDynamicId,
+    stableClasses,
     countAnchorRules,
     MAX_RULES_PER_ANCHOR,
     MAX_RULES_TOTAL,
@@ -42,6 +45,8 @@
   let picker = null;
   let notice = null;
   let syncToken = 0;
+  let pathWatchTimer = 0;
+  let lastPathname = location.pathname;
   let fallbackStyleEl = null;
   let resolveReady = null;
   const contextPoint = { x: -1, y: -1, at: 0 };
@@ -113,6 +118,35 @@
       ? []
       : selectorsForPage(store.rules, hostname, location.pathname, false);
     activeSelectors = selectors.filter(isApplicableSelector);
+
+    const pathScoped = !whitelisted && store.rules.some((rule) => (
+      rule.enabled !== false &&
+      !!rule.path &&
+      rule.path !== '*' &&
+      ruleMatchesHost(rule, hostname)
+    ));
+    watchPathChanges(pathScoped);
+  }
+
+  function watchPathChanges(enabled) {
+    if (enabled && !pathWatchTimer) {
+      lastPathname = location.pathname;
+      pathWatchTimer = setInterval(checkPathChange, 800);
+      window.addEventListener('popstate', checkPathChange);
+      window.addEventListener('hashchange', checkPathChange);
+    } else if (!enabled && pathWatchTimer) {
+      clearInterval(pathWatchTimer);
+      pathWatchTimer = 0;
+      window.removeEventListener('popstate', checkPathChange);
+      window.removeEventListener('hashchange', checkPathChange);
+    }
+  }
+
+  function checkPathChange() {
+    const next = location.pathname;
+    if (next === lastPathname) return;
+    lastPathname = next;
+    syncFromStorage();
   }
 
   async function syncFromStorage() {
@@ -547,11 +581,6 @@
     'data-testid', 'data-test-id', 'data-test', 'data-qa', 'data-cy',
     'name', 'aria-label', 'role'
   ];
-  const EPHEMERAL_CLASSES = new Set([
-    'active', 'selected', 'open', 'opened', 'show', 'shown', 'visible', 'hidden',
-    'focus', 'focused', 'hover', 'hovered', 'expanded', 'collapsed', 'disabled',
-    'enabled', 'current', 'playing', 'loaded', 'loading', 'dragging'
-  ]);
   const MEDIA_TAGS = new Set(['img', 'iframe', 'embed', 'video', 'audio', 'source']);
 
   function isUnique(selector) {
@@ -568,31 +597,6 @@
     } catch {
       return 0;
     }
-  }
-
-  function looksHashedClass(name) {
-    if (name.length > 40) return true;
-    const parts = name.split(/[-_]+/).filter(Boolean);
-    const tail = parts[parts.length - 1] || '';
-    if (tail.length >= 4 && /^[a-z0-9]+$/i.test(tail) && /\d/.test(tail) && /[a-z]/i.test(tail)) return true;
-    return false;
-  }
-
-  function looksDynamicId(id) {
-    if (id.length > 64) return true;
-    if (/^\d/.test(id)) return true;
-    if (/:r[0-9a-z]+:/i.test(id)) return true;
-    if (/^(?:ember|react|radix|mui|headlessui|downshift|ng|vue|svelte)-?\d{2,}$/i.test(id)) return true;
-    if (/[0-9a-f]{8}-[0-9a-f]{4}-[1-5]?[0-9a-f]{3}-[89ab]?[0-9a-f]{3}-[0-9a-f]{12}/i.test(id)) return true;
-    if (/(?:^|[-_])(?:id|uid|uuid|guid)[-_]?[0-9a-f]{6,}$/i.test(id)) return true;
-    return false;
-  }
-
-  function stableClasses(el) {
-    const names = Array.from(el.classList)
-      .filter((name) => !!name && !/^\d/.test(name) && !looksHashedClass(name));
-    const preferred = names.filter((name) => !EPHEMERAL_CLASSES.has(name.toLowerCase()));
-    return (preferred.length ? preferred : names).slice(0, 3);
   }
 
   function selectorForId(el) {
@@ -657,14 +661,6 @@
     for (const candidate of attributeCandidates(el)) {
       const selector = attributeSelector(el, candidate);
       if (selector.length <= MAX_SELECTOR_LENGTH && isUnique(selector)) return selector;
-    }
-    return null;
-  }
-
-  function broadAttributeSelector(el) {
-    for (const candidate of attributeCandidates(el)) {
-      const selector = attributeSelector(el, candidate);
-      if (selector.length <= MAX_SELECTOR_LENGTH && countMatches(selector) > 0) return selector;
     }
     return null;
   }
@@ -800,22 +796,34 @@
     const classes = stableClasses(el);
     if (classes.length) {
       candidates.push(el.localName + '.' + classes.map((name) => CSS.escape(name)).join('.'));
+      for (const name of classes) {
+        candidates.push(el.localName + '.' + CSS.escape(name));
+      }
     }
-    const attr = broadAttributeSelector(el);
-    if (attr) candidates.push(attr);
+    for (const candidate of attributeCandidates(el)) {
+      const selector = attributeSelector(el, candidate);
+      if (selector.length <= MAX_SELECTOR_LENGTH) candidates.push(selector);
+    }
     const path = broadPathSelector(el);
     if (path) candidates.push(path);
     const id = selectorForId(el);
     if (id) candidates.push(id);
 
     const seen = new Set();
+    let best = null;
+    let fallback = null;
     for (const selector of candidates) {
       if (!selector || seen.has(selector) || selector.length > MAX_SELECTOR_LENGTH) continue;
       seen.add(selector);
       const count = countMatches(selector);
-      if (count > 0) return { selector, count };
+      if (count <= 0) continue;
+      if (count > 1) {
+        if (!best || count < best.count) best = { selector, count };
+      } else if (!fallback) {
+        fallback = { selector, count };
+      }
     }
-    return null;
+    return best || fallback;
   }
 
   function createPicker(options) {
@@ -835,6 +843,7 @@
     const tip = document.createElement('div');
     tip.className = 'tip';
     const coarsePointer = window.matchMedia('(pointer: coarse)').matches;
+    const panelBaseBottom = coarsePointer ? 10 : 20;
 
     let panel = null;
     let panelTitle = null;
@@ -1020,6 +1029,7 @@
     let dragMinTop = 6;
     let panelMoved = false;
     let selectedPath = '';
+    let scrollUnlock = null;
     const zapped = [];
 
     function isOwnEvent(event) {
@@ -1305,6 +1315,16 @@
       return 6;
     }
 
+    function updatePanelBottom() {
+      if (!panel || !panel.classList.contains('show') || panelMoved) return;
+      const viewport = window.visualViewport;
+      let obscured = 0;
+      if (viewport && viewport.height > 0) {
+        obscured = Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop);
+      }
+      panel.style.bottom = `${panelBaseBottom + obscured}px`;
+    }
+
     function clampPanelToViewport() {
       if (!panel || !panelMoved || destroyed || !panel.classList.contains('show')) return;
       const rect = panel.getBoundingClientRect();
@@ -1374,6 +1394,7 @@
       panelTitle.textContent = t('selectionRange');
       panel.classList.remove('panel-empty');
       panel.classList.add('show');
+      updatePanelBottom();
       showMessage('');
       recomputeSelection();
     }
@@ -1414,6 +1435,7 @@
       panel.classList.add('panel-empty');
       panel.classList.add('show');
       panelSelector.value = '';
+      updatePanelBottom();
       showMessage('');
       if (lastPoint.x >= 0) hoverInfo = targetInfoFromPoint(lastPoint.x, lastPoint.y);
       schedulePaint();
@@ -1538,11 +1560,32 @@
       return false;
     }
 
+    function styleValue(el, property) {
+      return {
+        value: el.style.getPropertyValue(property),
+        priority: el.style.getPropertyPriority(property)
+      };
+    }
+
+    function restoreStyleValue(el, property, saved) {
+      if (!el) return;
+      if (saved.value) el.style.setProperty(property, saved.value, saved.priority);
+      else el.style.removeProperty(property);
+    }
+
     function unlockScrollIfNeeded(el) {
       if (!isScrollLockCandidate(el)) return;
       const body = document.body;
       const docEl = document.documentElement;
       if (!body || !docEl) return;
+      if (!scrollUnlock) {
+        scrollUnlock = {
+          bodyOverflow: styleValue(body, 'overflow'),
+          bodyPosition: styleValue(body, 'position'),
+          docOverflow: styleValue(docEl, 'overflow'),
+          docPosition: styleValue(docEl, 'position')
+        };
+      }
       try {
         if (getComputedStyle(body).overflowY === 'hidden') {
           body.style.setProperty('overflow', 'auto', 'important');
@@ -1558,6 +1601,17 @@
         }
       } catch {
       }
+    }
+
+    function restoreScrollUnlock() {
+      if (!scrollUnlock) return;
+      const body = document.body;
+      const docEl = document.documentElement;
+      restoreStyleValue(body, 'overflow', scrollUnlock.bodyOverflow);
+      restoreStyleValue(body, 'position', scrollUnlock.bodyPosition);
+      restoreStyleValue(docEl, 'overflow', scrollUnlock.docOverflow);
+      restoreStyleValue(docEl, 'position', scrollUnlock.docPosition);
+      scrollUnlock = null;
     }
 
     function updateZapHud() {
@@ -1576,6 +1630,7 @@
         return false;
       }
       updateZapHud();
+      if (!zapped.length) restoreScrollUnlock();
       return true;
     }
 
@@ -1697,6 +1752,7 @@
     }
 
     function onViewportChange() {
+      updatePanelBottom();
       clampPanelToViewport();
       if (selection) {
         schedulePaint();
@@ -1754,6 +1810,7 @@
       });
     }
 
+    const viewport = window.visualViewport;
     const guardTypes = ['pointerdown', 'pointerup', 'mousedown', 'mouseup', 'dblclick',
       'contextmenu', 'dragstart', 'selectstart', 'auxclick', 'touchstart', 'touchend'];
     guardTypes.forEach((type) => window.addEventListener(type, onGuard, true));
@@ -1763,6 +1820,10 @@
     window.addEventListener('keydown', onKeyDown, true);
     window.addEventListener('scroll', onViewportChange, true);
     window.addEventListener('resize', onViewportChange, true);
+    if (viewport) {
+      viewport.addEventListener('resize', onViewportChange);
+      viewport.addEventListener('scroll', onViewportChange);
+    }
     if (mode === 'block') {
       window.addEventListener('pointermove', movePanelDrag, { passive: false });
       window.addEventListener('pointerup', endPanelDrag);
@@ -1795,6 +1856,10 @@
         window.removeEventListener('keydown', onKeyDown, true);
         window.removeEventListener('scroll', onViewportChange, true);
         window.removeEventListener('resize', onViewportChange, true);
+        if (viewport) {
+          viewport.removeEventListener('resize', onViewportChange);
+          viewport.removeEventListener('scroll', onViewportChange);
+        }
         if (mode === 'block') {
           window.removeEventListener('pointermove', movePanelDrag, { passive: false });
           window.removeEventListener('pointerup', endPanelDrag);

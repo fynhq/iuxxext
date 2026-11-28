@@ -35,6 +35,9 @@ jobs:
         with:
           node-version: 22
 
+      - name: Run tests
+        run: npm test
+
       - name: Verify tag matches manifest version
         id: version
         shell: bash
@@ -198,33 +201,97 @@ jobs:
         shell: bash
         env:
           INPUT_TAG: ${{ inputs.tag }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          TAG="${INPUT_TAG:-}"
-          if [ -z "$TAG" ]; then
-            TAG=$(git tag --list 'v*' --sort=-v:refname | head -n 1)
-          fi
-          if [ -z "$TAG" ]; then
-            if [ "$GITHUB_EVENT_NAME" = "schedule" ]; then
-              echo "skip=true" >> "$GITHUB_OUTPUT"
-              echo "No v* tag found; skipping scheduled publish."
-              exit 0
+          ADDON_ID=$(jq -r '.browser_specific_settings.gecko.id' src/manifest.json)
+          ADDON=$(node -e 'process.stdout.write(encodeURIComponent(process.argv[1]))' "$ADDON_ID")
+
+          validate_tag() {
+            local tag="$1"
+            local version="${tag#v}"
+            if ! git rev-parse -q --verify "refs/tags/$tag" >/dev/null; then
+              echo "Tag '$tag' does not exist." >&2
+              return 1
             fi
-            echo "No v* tag found in this repository." >&2
-            exit 1
+            local manifest_version
+            manifest_version=$(git show "$tag:src/manifest.json" | jq -r .version)
+            if [ "$manifest_version" != "$version" ]; then
+              echo "Tag $tag does not match manifest version $manifest_version." >&2
+              return 1
+            fi
+          }
+
+          select_tag() {
+            local tag="$1"
+            local version="${tag#v}"
+            local response code body channel status release_json is_draft assets
+            response=$(curl -sS -w "\n%{http_code}" "$AMO_API/addon/$ADDON/versions/$version/")
+            code=$(tail -n 1 <<<"$response")
+            body=$(sed '$d' <<<"$response")
+            case "$code" in
+              200) ;;
+              401|403|404) return 1 ;;
+              *)
+                echo "$body" >&2
+                echo "Unexpected HTTP $code from AMO for $tag." >&2
+                exit 1
+                ;;
+            esac
+            channel=$(jq -r '.channel // empty' <<<"$body")
+            status=$(jq -r '.file.status // empty' <<<"$body")
+            if [ "$channel" != "listed" ] || [ "$status" != "public" ]; then
+              return 1
+            fi
+            release_json=$(gh release view "$tag" --json assets,isDraft 2>/dev/null || true)
+            if [ -n "$release_json" ]; then
+              is_draft=$(jq -r '.isDraft // false' <<<"$release_json")
+              assets=$(jq -r '.assets[].name' <<<"$release_json")
+              if [ "$is_draft" != "true" ] \
+                && grep -qx "iuxx_firefox_v${version}.xpi" <<<"$assets" \
+                && grep -qx "SHA256SUMS" <<<"$assets"; then
+                return 1
+              fi
+            fi
+          }
+
+          TAG="${INPUT_TAG:-}"
+          if [ -z "$TAG" ] && [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
+            TAG=$(git tag --list 'v*' --sort=-v:refname | head -n 1)
+            if [ -z "$TAG" ]; then
+              echo "No v* tag found in this repository." >&2
+              exit 1
+            fi
           fi
-          if ! git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
-            echo "Tag '$TAG' does not exist." >&2
-            exit 1
+          if [ -n "$TAG" ]; then
+            validate_tag "$TAG" || exit 1
+            echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+            echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
-          VERSION="${TAG#v}"
-          MANIFEST_VERSION=$(git show "$TAG:src/manifest.json" | jq -r .version)
-          if [ "$MANIFEST_VERSION" != "$VERSION" ]; then
-            echo "Tag $TAG does not match manifest version $MANIFEST_VERSION." >&2
-            exit 1
+
+          FOUND=""
+          while IFS= read -r CANDIDATE; do
+            [ -n "$CANDIDATE" ] || continue
+            if ! validate_tag "$CANDIDATE"; then
+              continue
+            fi
+            if select_tag "$CANDIDATE"; then
+              FOUND="$CANDIDATE"
+              break
+            fi
+          done < <(git tag --list 'v*' --sort=-v:refname)
+
+          if [ -z "$FOUND" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "No published tag is missing a GitHub release; nothing to do."
+            exit 0
           fi
-          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+          echo "skip=false" >> "$GITHUB_OUTPUT"
+          echo "tag=$FOUND" >> "$GITHUB_OUTPUT"
+          echo "version=${FOUND#v}" >> "$GITHUB_OUTPUT"
+          echo "Selected $FOUND for publishing."
 
       - name: Check AMO review status
         id: amo

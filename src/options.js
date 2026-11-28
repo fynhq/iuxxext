@@ -11,6 +11,8 @@
     normalizeBackup,
     selectorIsStorable,
     selectorTargetsRoot,
+    buildRuleText,
+    createUndoBar,
     SETTINGS_KEY
   } = IUXX;
 
@@ -54,13 +56,19 @@
   let store = { rules: [], whitelist: [] };
   let settings = { keepPickerOpen: false };
   let editingId = null;
-  let lastDeleted = null;
   let search = '';
-  let undoTimer = 0;
+  let searchTimer = 0;
+  let renderTimer = 0;
+  let pendingReload = false;
   let errorTimer = 0;
   let importBusy = false;
   const collapsedHosts = new Set();
   const statusTimers = new WeakMap();
+  const undo = createUndoBar({
+    bar: els.undoBar,
+    text: els.undoText,
+    button: els.undoBtn
+  });
 
   IUXX.applyI18n();
   els.undoBtn.textContent = t('undo');
@@ -85,12 +93,12 @@
     els.ruleScope.addEventListener('change', updateFormForScope);
     els.search.addEventListener('input', () => {
       search = els.search.value.trim().toLowerCase();
-      renderRules();
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(renderRules, 120);
     });
     els.exportBtn.addEventListener('click', onExport);
     els.importBtn.addEventListener('click', () => els.importFile.click());
     els.importFile.addEventListener('change', onImportFile);
-    els.undoBtn.addEventListener('click', onUndoDelete);
   }
 
   function onStorageChanged(changes, area) {
@@ -105,7 +113,20 @@
         !(IUXX.WHITELIST_KEY in changes)) {
       return;
     }
-    load().then(render);
+    scheduleRender(true);
+  }
+
+  function scheduleRender(reload) {
+    if (reload) pendingReload = true;
+    if (renderTimer) return;
+    renderTimer = setTimeout(async () => {
+      renderTimer = 0;
+      if (pendingReload) {
+        pendingReload = false;
+        await load();
+      }
+      render();
+    }, 60);
   }
 
   async function load() {
@@ -167,8 +188,7 @@
       const result = await api.runtime.sendMessage({ type: 'SET_WHITELIST', domain, enabled: true });
       if (!result || !result.ok) throw new Error('failed');
       els.input.value = '';
-      await load();
-      render();
+      scheduleRender(true);
     } catch {
       showError(t('saveFailed'));
     } finally {
@@ -186,8 +206,7 @@
     try {
       const result = await api.runtime.sendMessage({ type: 'SET_WHITELIST', domain, enabled: false });
       if (!result || !result.ok) throw new Error('failed');
-      await load();
-      render();
+      scheduleRender(true);
     } catch {
       button.disabled = false;
       showError(t('removeFailed'));
@@ -333,12 +352,6 @@
     els.limitWarning.classList.toggle('hidden', !message);
   }
 
-  function scopeLabel(rule) {
-    if (rule.scope === 'global') return t('scopeGlobal');
-    if (rule.scope === 'domain') return t('scopeDomain');
-    return t('scopeHost');
-  }
-
   function buildRuleRow(rule) {
     const row = document.createElement('li');
     row.className = 'rule-row' + (rule.enabled === false ? ' off' : '');
@@ -353,37 +366,7 @@
     toggle.addEventListener('change', () => onRuleToggle(rule, toggle));
     toggleLabel.appendChild(toggle);
 
-    const text = document.createElement('div');
-    text.className = 'rule-text';
-    const preview = document.createElement('div');
-    preview.className = 'rule-preview';
-    preview.textContent = rule.preview || t('blockedElement');
-    const selector = document.createElement('div');
-    selector.className = 'rule-selector';
-    selector.textContent = rule.selector;
-    selector.title = rule.selector;
-
-    const meta = document.createElement('div');
-    meta.className = 'rule-meta';
-    const scope = document.createElement('span');
-    scope.className = 'rule-badge';
-    scope.textContent = scopeLabel(rule);
-    meta.appendChild(scope);
-    if (rule.path) {
-      const path = document.createElement('span');
-      path.className = 'rule-badge path';
-      path.textContent = rule.path;
-      path.title = t('pathBadgeTitle');
-      meta.appendChild(path);
-    }
-    if (rule.enabled === false) {
-      const disabled = document.createElement('span');
-      disabled.className = 'rule-badge disabled';
-      disabled.textContent = t('ruleDisabled');
-      meta.appendChild(disabled);
-    }
-
-    text.append(preview, selector, meta);
+    const text = buildRuleText(rule);
 
     const actions = document.createElement('div');
     actions.className = 'rule-actions';
@@ -442,7 +425,7 @@
       });
       if (!result || !result.ok) throw new Error('failed');
       rule.enabled = checkbox.checked;
-      renderRules();
+      scheduleRender(false);
     } catch {
       checkbox.checked = !checkbox.checked;
       checkbox.disabled = false;
@@ -483,46 +466,24 @@
     try {
       const result = await api.runtime.sendMessage({ type: 'REMOVE_RULE', id: rule.id });
       if (!result || !result.ok) throw new Error('failed');
-      lastDeleted = result.removed || rule;
+      const removed = result.removed || rule;
       store.rules = store.rules.filter((item) => item.id !== rule.id);
       if (editingId === rule.id) resetRuleForm();
-      render();
-      showUndo(t('ruleDeleted'));
+      scheduleRender(false);
+      undo.show(t('ruleDeleted'), async () => {
+        let restored = null;
+        try {
+          restored = await api.runtime.sendMessage({ type: 'RESTORE_RULE', rule: removed });
+        } catch {
+          return false;
+        }
+        if (!restored || !restored.ok) return false;
+        scheduleRender(true);
+        return true;
+      });
     } catch {
       button.disabled = false;
       setStatus(els.rulesStatus, t('deleteFailed'), true);
-    }
-  }
-
-  function showUndo(text) {
-    clearTimeout(undoTimer);
-    els.undoText.textContent = text;
-    els.undoBtn.disabled = false;
-    els.undoBtn.textContent = t('undo');
-    els.undoBar.classList.remove('hidden');
-    undoTimer = setTimeout(hideUndo, 8000);
-  }
-
-  function hideUndo() {
-    clearTimeout(undoTimer);
-    undoTimer = 0;
-    lastDeleted = null;
-    els.undoBar.classList.add('hidden');
-  }
-
-  async function onUndoDelete() {
-    if (!lastDeleted) return;
-    const rule = lastDeleted;
-    els.undoBtn.disabled = true;
-    try {
-      const result = await api.runtime.sendMessage({ type: 'RESTORE_RULE', rule });
-      if (!result || !result.ok) throw new Error('failed');
-      hideUndo();
-      await load();
-      render();
-    } catch {
-      els.undoBtn.disabled = false;
-      els.undoText.textContent = t('undoFailed');
     }
   }
 
@@ -644,8 +605,7 @@
         return;
       }
       resetRuleForm();
-      await load();
-      render();
+      scheduleRender(true);
       setStatus(els.rulesStatus, t('ruleSaved'));
     } catch {
       showRuleError(t('saveFailed'));
@@ -733,13 +693,12 @@
         mode
       });
       if (!result || !result.ok) throw new Error('failed');
-      await Promise.all([load(), loadSettings()]);
+      await loadSettings();
       resetRuleForm();
-      render();
+      scheduleRender(true);
       setStatus(els.backupStatus, t('importDone', [
         String(result.added),
-        String(result.skipped),
-        String(result.total)
+        String(result.skipped)
       ]));
     } catch {
       setStatus(els.backupStatus, t('importFailed'), true);

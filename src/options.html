@@ -35,7 +35,7 @@
         <input id="wl-input" type="text" placeholder="example.com" data-i18n-placeholder="whitelistPlaceholder" autocomplete="off" spellcheck="false" aria-label="Domain to add to exceptions" data-i18n-aria-label="whitelistInputAria">
         <button id="wl-add" type="submit" data-i18n="add">Add</button>
       </form>
-      <p id="wl-error" class="form-error hidden"></p>
+      <p id="wl-error" class="form-error hidden" role="alert"></p>
       <ul id="wl-list" class="wl-list"></ul>
       <p id="wl-empty" class="empty" data-i18n="whitelistEmpty">No exceptions yet.</p>
     </section>
@@ -80,7 +80,7 @@
             <button id="rule-submit" class="primary" type="submit" data-i18n="addRuleButton">Add</button>
             <button id="rule-cancel" class="ghost" type="button" data-i18n="cancel" hidden>Cancel</button>
           </div>
-          <p id="rule-error" class="form-error hidden"></p>
+          <p id="rule-error" class="form-error hidden" role="alert"></p>
         </form>
       </div>
     </details>

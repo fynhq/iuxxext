@@ -105,17 +105,24 @@ function ensureMenus() {
   if (!menus) return Promise.resolve();
   if (menuSetup) return menuSetup;
   menuSetup = (async () => {
-    await menus.removeAll();
-    await menus.create({
-      id: MENU_BLOCK_ID,
-      title: t('menuBlockElement'),
-      contexts: ['all']
-    });
-    await menus.create({
-      id: MENU_ZAP_ID,
-      title: t('menuZapElement'),
-      contexts: ['all']
-    });
+    const entries = [
+      [MENU_BLOCK_ID, t('menuBlockElement')],
+      [MENU_ZAP_ID, t('menuZapElement')]
+    ];
+    for (const [id, title] of entries) {
+      let exists = true;
+      try {
+        await menus.update(id, { title });
+      } catch {
+        exists = false;
+      }
+      if (!exists) {
+        try {
+          await menus.create({ id, title, contexts: ['all'] });
+        } catch {
+        }
+      }
+    }
   })().catch(() => {});
   return menuSetup;
 }
@@ -268,6 +275,9 @@ async function updateRule(message) {
     createdAt: existing.createdAt
   });
   if (!rule) return { ok: false, error: 'invalid' };
+  if (rule.scope !== 'global' && isWhitelisted(rule.host, store.whitelist)) {
+    return { ok: false, error: 'whitelisted' };
+  }
   if (store.rules.some((item) => item.id !== id && sameRule(item, rule))) {
     return { ok: false, error: 'duplicate' };
   }

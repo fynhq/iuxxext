@@ -59,9 +59,10 @@ Rules, exceptions, and settings are stored only in the extension's local storage
 
 ## Build from source
 
-`src/` is the extension; there is no build or transpile step. Node.js is only needed for `web-ext`.
+`src/` is the extension; there is no build or transpile step. Node.js is used for tests and `web-ext`.
 
 ```sh
+npm test
 npx web-ext@10 lint --source-dir src
 npx web-ext@10 run --source-dir src
 npx web-ext@10 build --source-dir src --overwrite-dest
@@ -128,9 +129,10 @@ IUxx 不收集、不上传个人数据。manifest 中声明：
 
 ## 从源码构建
 
-`src/` 就是扩展本身，没有构建或转译步骤。Node.js 仅用于 `web-ext`。
+`src/` 就是扩展本身，没有构建或转译步骤。Node.js 用于运行测试和 `web-ext`。
 
 ```sh
+npm test
 npx web-ext@10 lint --source-dir src
 npx web-ext@10 run --source-dir src
 npx web-ext@10 build --source-dir src --overwrite-dest

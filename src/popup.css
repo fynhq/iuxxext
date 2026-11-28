@@ -251,8 +251,8 @@ main {
 }
 
 .primary-btn:disabled {
-  background: #cbd0d8;
-  color: #f4f5f7;
+  background: var(--bg-soft);
+  color: var(--muted);
   cursor: not-allowed;
 }
 
