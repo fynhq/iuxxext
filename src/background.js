@@ -12,6 +12,7 @@ function enqueue(task) {
 }
 
 api.runtime.onInstalled.addListener(async () => {
+  if (!menus) return;
   try {
     await menus.removeAll();
     await menus.create({
@@ -23,19 +24,23 @@ api.runtime.onInstalled.addListener(async () => {
   }
 });
 
-menus.onClicked.addListener((info, tab) => {
-  if (info.menuItemId !== MENU_ID || !tab || typeof tab.id !== 'number') return;
-  openPicker(tab.id);
-});
+if (menus && menus.onClicked) {
+  menus.onClicked.addListener((info, tab) => {
+    if (info.menuItemId !== MENU_ID || !tab || typeof tab.id !== 'number') return;
+    openPicker(tab.id);
+  });
+}
 
-api.commands.onCommand.addListener(async (command) => {
-  if (command !== 'start-picker') return;
-  try {
-    const [tab] = await api.tabs.query({ active: true, currentWindow: true });
-    if (tab && typeof tab.id === 'number') openPicker(tab.id);
-  } catch {
-  }
-});
+if (api.commands && api.commands.onCommand) {
+  api.commands.onCommand.addListener(async (command) => {
+    if (command !== 'start-picker') return;
+    try {
+      const [tab] = await api.tabs.query({ active: true, currentWindow: true });
+      if (tab && typeof tab.id === 'number') openPicker(tab.id);
+    } catch {
+    }
+  });
+}
 
 async function openPicker(tabId) {
   const message = { type: 'START_PICKER' };
@@ -44,6 +49,7 @@ async function openPicker(tabId) {
     return;
   } catch {
   }
+  if (!api.scripting || typeof api.scripting.executeScript !== 'function') return;
   try {
     await api.scripting.executeScript({
       target: { tabId, frameIds: [0] },
